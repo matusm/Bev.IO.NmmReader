@@ -3,7 +3,7 @@
 namespace Bev.IO.NmmReader.scan_mode
 {
     /// <summary>
-    /// A simple container class to hold the title and corresponding measurement unit for the data columns of NMM scan files.
+    /// A simple container class to hold the title and corresponding measurement unit for the data columns of NNM scan files.
     /// </summary>
     public class ScanColumnPredicate
     {
