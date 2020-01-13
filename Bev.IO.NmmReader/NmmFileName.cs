@@ -95,6 +95,11 @@ namespace Bev.IO.NmmReader
             return GetFileName(ScanDirection.Forward, extension, 0);
         }
 
+        public string GetFreeFileNameWithIndex(string extension)
+        {
+            return GetFileName(ScanDirection.Forward, extension, ScanIndex);
+        }
+
         #endregion
 
         #region Private stuff
