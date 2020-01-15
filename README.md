@@ -1,4 +1,4 @@
-# NmmReader (Csharp-NmmReader)
+# NmmReader (Bev.IO.NmmReader)
 
 C# library for reading files produced by the Nanopositioning and Nanomeasuring Machine (NMM)
 
