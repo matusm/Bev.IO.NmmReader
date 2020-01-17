@@ -24,20 +24,33 @@ namespace Bev.IO.NmmReader.scan_mode
 
         #region Ctor
 
-        public NmmScanData(NmmFileName fileName)
+        public NmmScanData(NmmFileName fileNameObject)
         {
-            NmmDescriptionFileParser nmmDsc = new NmmDescriptionFileParser(fileName);
-            NmmIndFileParser nmmInd = new NmmIndFileParser(fileName);
-            NmmEnvironmentData nmmPos = new NmmEnvironmentData(fileName);
-            NmmInstrumentCharacteristcs nmmInstr = new NmmInstrumentCharacteristcs();
             MetaData = new ScanMetaData();
-            MetaData.AddDataFrom(fileName);
-            MetaData.AddDataFrom(nmmDsc);
-            MetaData.AddDataFrom(nmmInd);
-            MetaData.AddDataFrom(nmmPos);
-            MetaData.AddDataFrom(nmmInstr);
+            MetaData.AddDataFrom(fileNameObject);
+            MetaData.AddDataFrom(new NmmInstrumentCharacteristcs());
+            // firs read the description file so we can check if requested scan index is valid
+            MetaData.AddDataFrom(new NmmDescriptionFileParser(fileNameObject));
+            // now perform the scan index checks
+            if (MetaData.NumberOfScans > 1)
+            {
+                int scanIndex = fileNameObject.ScanIndex;
+                if (scanIndex == 0)
+                {
+                    scanIndex = 1;
+                }
+                if (scanIndex > MetaData.NumberOfScans)
+                {
+                    scanIndex = MetaData.NumberOfScans;
+                }
+                fileNameObject.SetScanIndex(scanIndex);
+                MetaData.AddDataFrom(fileNameObject);
+            }
+            // at this stage the scan index of fileNameObject should be ok
+            MetaData.AddDataFrom(new NmmIndFileParser(fileNameObject));
+            MetaData.AddDataFrom(new NmmEnvironmentData(fileNameObject));
             topographyData = new TopographyData(MetaData);
-            nmmDat = new NmmDatFileParser(fileName);
+            nmmDat = new NmmDatFileParser(fileNameObject);
             LoadTopographyData();
             // contrary to similar classes of this library, the dat-files are not closed implicitely
             nmmDat.Close();
