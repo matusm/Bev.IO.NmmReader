@@ -39,6 +39,11 @@ namespace Bev.IO.NmmReader.scan_mode
         public ScanColumnPredicate[] ColumnPredicates { get; private set; }
         public string SpmTechnique { get; private set; }
         public List<string> ScanComments { get; private set; }
+        // first 3 lines of the "comment field" are taken as the
+        // "sample description" according to ISO 28600:2012
+        public string SampleIdentifier { get; private set; }
+        public string SampleSpecies { get; private set; }
+        public string SampleSpecification { get; private set; }
         // environmental data
         public double AirTemperature { get; private set; }
         public double SampleTemperature { get; private set; }
@@ -195,6 +200,14 @@ namespace Bev.IO.NmmReader.scan_mode
             ScanFieldRotation = obj.ScanFieldRotation;
             SpmTechnique = obj.SpmTechnique;
             ScanComments = obj.ScanComments;
+            // first 3 lines of the "comment field" are taken as the
+            // "sample description" according to ISO 28600:2012
+            SampleIdentifier = "(not specified)";
+            SampleSpecies = "(not specified)";
+            SampleSpecification = "(not specified)";
+            if (ScanComments.Count >= 1) SampleIdentifier = ScanComments[0];
+            if (ScanComments.Count >= 2) SampleSpecies = ScanComments[1];
+            if (ScanComments.Count >= 3) SampleSpecification = ScanComments[2];
         }
 
         private void FillEnvironmentalData(NmmEnvironmentData obj)
