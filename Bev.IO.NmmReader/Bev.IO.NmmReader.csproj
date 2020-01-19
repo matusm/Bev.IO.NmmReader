@@ -46,6 +46,7 @@
     <Compile Include="scan_mode\TopographyData.cs" />
     <Compile Include="NmmInstrumentCharacteristcs.cs" />
     <Compile Include="scan_mode\ScanMetadata.cs" />
+    <Compile Include="DataLeveling.cs" />
   </ItemGroup>
   <ItemGroup />
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
