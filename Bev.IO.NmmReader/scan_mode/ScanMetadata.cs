@@ -38,6 +38,7 @@ namespace Bev.IO.NmmReader.scan_mode
         public ScanDirectionStatus ScanStatus { get; private set; }
         public ScanColumnPredicate[] ColumnPredicates { get; private set; }
         public string SpmTechnique { get; private set; }
+        public string ProbeDesignation { get; private set; }
         public List<string> ScanComments { get; private set; }
         // first 3 lines of the "comment field" are taken as the
         // "sample description" according to ISO 28600:2012
@@ -200,6 +201,7 @@ namespace Bev.IO.NmmReader.scan_mode
             ScanFieldRotation = obj.ScanFieldRotation;
             SpmTechnique = obj.SpmTechnique;
             ScanComments = obj.ScanComments;
+            ProbeDesignation = obj.ProbeDesignation;
             // first 3 lines of the "comment field" are taken as the
             // "sample description" according to ISO 28600:2012
             SampleIdentifier = "(not specified)";

@@ -12,6 +12,9 @@ namespace Bev.IO.NmmReader
     public class NmmDescriptionFileParser
     {
         static readonly NumberFormatInfo numFormat = new NumberFormatInfo() { NumberDecimalSeparator = "." };
+        private const string ProbeType1 = "DME DualScope DS95";
+        private const string ProbeType2 = "SIOS LFS-02";
+        private const string ProbeType3 = "Xpress GannenXP";
 
         #region Ctor
 
@@ -51,6 +54,7 @@ namespace Bev.IO.NmmReader
 
         // common (scan and 3d) properties
         public MeasurementProcedure Procedure { get; private set; } = MeasurementProcedure.Unknown;
+        public string ProbeDesignation { get; private set; }
 
         // 3d properties
         public string SpecimenIdentifier { get; private set; }
@@ -126,6 +130,7 @@ namespace Bev.IO.NmmReader
             string sTemp;
             foreach (string s in fileContent)
             {
+                ProbeDesignation = ProbeType3;
                 if (s.Contains("Number of data points in file :"))
                 {
                     sTemp = s.Replace("Number of data points in file :", " ");
@@ -165,6 +170,7 @@ namespace Bev.IO.NmmReader
         private void Parse3DPointDescription()
         {
             // not much one can extract from this type of file
+            ProbeDesignation = ProbeType3;
             objectType = ObjectType.Free;
             return;
         }
@@ -219,9 +225,16 @@ namespace Bev.IO.NmmReader
             foreach (string s in scanProbeSystem)
             {
                 if (s.Contains("AFM"))
+                { 
                     SpmTechnique = "NC-AFM";
+                    ProbeDesignation = ProbeType1;
+                }
+                    
                 if (s.Contains("Laser Focus"))
+                { 
                     SpmTechnique = "LFS";
+                    ProbeDesignation = ProbeType2;
+                }
             }
         }
 
