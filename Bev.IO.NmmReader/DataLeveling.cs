@@ -160,14 +160,26 @@ namespace Bev.IO.NmmReader
         private void FitLsqLine()
         {
             int n = rawData.Length;
-            double sigmaXY = 0.0;
+            double[] x = new double[n];
+            double[] xx = new double[n];
+            double[] xy = new double[n];
             for (int i = 0; i < n; i++)
-                sigmaXY += i * rawData[i]; // Sum x*y
-            slopeX = (12.0 * sigmaXY - 6.0 * (n - 1.0) * rawData.Sum()) / (n * (n * n + 1.0));
-            intercept = AverageValue - 0.5 * slopeX * (n * (n - 1.0));
-            //TODO !!
-            //slopeX = (rawData.Sum() * (n * n - n) - 2.0 * n * sigmaXY) / ((-n * n / 6) * (n*n+4*n+1));
-            //intercept = AverageValue - 0.5 * slopeX * (n - 1.0);
+            {
+                x[i] = (double)i;
+                xx[i] = (double)i * (double)i;
+                xy[i] = rawData[i] * (double)i;
+            }
+            double sigmaX = x.Sum();
+            double sigmaY = rawData.Sum();
+            double sigmaXX = xx.Sum();
+            double sigmaXY = xy.Sum();
+            slopeX = ((n * sigmaXY) - (sigmaX * sigmaY)) / ((n * sigmaXX) - (sigmaX * sigmaX));
+            intercept = (sigmaY - (slopeX * sigmaX)) / (double)n;
+            // The algorithm used is a straightforward implementation
+            // taking into account the arithmetic series of the x-array, a faster calculation would be possible
+            // TODO find fast implementation
+            //slopeX = (12.0 * sigmaXY - 6.0 * (n - 1.0) * rawData.Sum()) / (n * (n * n + 1.0));
+            //intercept = AverageValue - 0.5 * slopeX * (n * (n - 1.0));
         }
 
         // Fits a least square plane to raster data
@@ -291,6 +303,7 @@ namespace Bev.IO.NmmReader
             return DataType.Raster;
         }
 
+        // private fields
         private readonly double[] rawData;
         private readonly int numPoints;
         private readonly int numProfiles;
