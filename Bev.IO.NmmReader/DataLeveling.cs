@@ -1,5 +1,4 @@
-﻿using System;
-using System.Linq;
+﻿using System.Linq;
 
 namespace Bev.IO.NmmReader
 {
@@ -102,7 +101,7 @@ namespace Bev.IO.NmmReader
             // now level the data
             for (int i = 0; i < rawData.Length; i++)
             {
-                leveledData[i] = sign * (rawData[i] - (intercept + (slopeX * i)));
+                leveledData[i] = sign * (rawData[i] - (intercept + (slopeX * (double)i)));
             }
             return leveledData;
         }
@@ -152,11 +151,11 @@ namespace Bev.IO.NmmReader
             // now level the data
             for (int i = 0; i < numPoints; i++)
                 for (int j = 0; j < numProfiles; j++)
-                    leveledData[i + j * numPoints] = sign * (rawData[i + (j * numPoints)] - (intercept + (slopeX * i) + (slopeY * j)));
+                    leveledData[i + j * numPoints] = sign * (rawData[i + (j * numPoints)] - (intercept + (slopeX * (double)i) + (slopeY * (double)j)));
             return leveledData;
         }
 
-        // Fits a least square plane to raster data
+        // Fits a least square line to raster data
         // works with equidistant spacing only
         private void FitLsqLine()
         {
@@ -166,6 +165,9 @@ namespace Bev.IO.NmmReader
                 sigmaXY += i * rawData[i]; // Sum x*y
             slopeX = (12.0 * sigmaXY - 6.0 * (n - 1.0) * rawData.Sum()) / (n * (n * n + 1.0));
             intercept = AverageValue - 0.5 * slopeX * (n * (n - 1.0));
+            //TODO !!
+            //slopeX = (rawData.Sum() * (n * n - n) - 2.0 * n * sigmaXY) / ((-n * n / 6) * (n*n+4*n+1));
+            //intercept = AverageValue - 0.5 * slopeX * (n - 1.0);
         }
 
         // Fits a least square plane to raster data
