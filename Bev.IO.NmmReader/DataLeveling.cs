@@ -21,7 +21,7 @@ namespace Bev.IO.NmmReader
         public ReferenceTo Mode { get; private set; }
         public string LevelModeDescription => ModeToString(Mode);
         // z
-        public double BiasValue { get; private set; }
+        public double BiasValue { get; set; }
         public double MaximumValue => rawData.Max();
         public double MinimumValue => rawData.Min();
         public double AverageValue => rawData.Average();
@@ -262,7 +262,7 @@ namespace Bev.IO.NmmReader
                 case ReferenceTo.Average:
                     return $"Profile referenced to avarage height value ({intercept})";
                 case ReferenceTo.Bias:
-                    return $"Profile referenced to user supplied value ({intercept})";
+                    return $"Profile referenced to user supplied value ({BiasValue})";
                 case ReferenceTo.Center:
                     return $"Profile referenced to central value of trace ({intercept})";
                 case ReferenceTo.Central:
@@ -297,7 +297,7 @@ namespace Bev.IO.NmmReader
                 case ReferenceTo.Average:
                     return $"Surface referenced to avarage height value ({intercept})";
                 case ReferenceTo.Bias:
-                    return $"Surface referenced to user supplied value ({intercept})";
+                    return $"Surface referenced to user supplied value ({BiasValue})";
                 case ReferenceTo.Center:
                     return $"Surface referenced to central value of array ({intercept})";
                 case ReferenceTo.Central:
@@ -350,19 +350,19 @@ namespace Bev.IO.NmmReader
 
     public enum ReferenceTo
     {
-        None = 0,           // do not change the height data
-        Minimum = 1,        // reference height data to minimal z-value
-        Maximum = 2,        // reference height data to maximal z-value
-        Average = 3,        // reference height data to arithmetic mean z-value
-        Central = 4,        // reference height data to mid of span z-value
-        Bias = 5,           // reference height data to user defined bias z-value
-        First = 6,          // reference height data to first value
-        Last = 7,           // reference height data to last value
-        Center = 8,         // reference height data to center value
-        Line = 9,           // subtract linear line (first to last point) / three point plane
-        Lsq = 10,           // subtract least square linear line / plane
-        LsqPositive = 11,   // subtract least square linear line / plane and shift to positve values
-        LinePositive = 12   // subtract linear line (first to last point) / three point plane and shift to positve values
+        None,          // do not change the height data
+        Minimum,       // reference height data to minimal z-value
+        Maximum,       // reference height data to maximal z-value
+        Average,       // reference height data to arithmetic mean z-value
+        Central,       // reference height data to mid of span z-value
+        Bias,          // reference height data to user defined bias z-value
+        First,         // reference height data to first value
+        Last,          // reference height data to last value
+        Center,        // reference height data to center value
+        Line,          // subtract linear line (first to last point) / three point plane
+        Lsq,           // subtract least square linear line / plane
+        LsqPositive,   // subtract least square linear line / plane and shift to positve values
+        LinePositive   // subtract linear line (first to last point) / three point plane and shift to positve values
     }
 
     public enum DataType
