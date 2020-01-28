@@ -113,7 +113,7 @@ namespace Bev.IO.NmmReader
             {
                 double min = leveledData.Min();
                 for (int i = 0; i < leveledData.Length; i++)
-                    leveledData[i] += min;
+                    leveledData[i] = leveledData[i] - min;
             }
             return leveledData;
         }
@@ -171,7 +171,7 @@ namespace Bev.IO.NmmReader
             {
                 double min = leveledData.Min();
                 for (int i = 0; i < leveledData.Length; i++)
-                    leveledData[i] += min;
+                    leveledData[i] = leveledData[i] - min;
             }
             return leveledData;
         }
@@ -340,7 +340,7 @@ namespace Bev.IO.NmmReader
         private double intercept; // constant part to be subtracted
         private double slopeX; // X-length dependend part to be subtracted
         private double slopeY; // Y-length dependend part to be subtracted
-        private double sign = 1.0; // sign factor (+1/-1);
+        private double sign = 1.0; // sign factor (+1/-1); currently not used
 
         #endregion
 
