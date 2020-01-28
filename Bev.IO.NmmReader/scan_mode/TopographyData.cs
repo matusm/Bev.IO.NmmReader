@@ -58,12 +58,11 @@ namespace Bev.IO.NmmReader.scan_mode
                     bwdMatrix = null;
                     break;
             }
-            // set up a return array for invalid requests
-            invalidProfile = Enumerable.Repeat(double.NaN, scanMetaData.NumberOfDataPoints).ToArray();
         }
 
         #endregion
 
+    
         #region Properties
         // the size of the two matrices
         public int NumberOfProfiles { get; private set; }
@@ -104,10 +103,10 @@ namespace Bev.IO.NmmReader.scan_mode
         public double[] ExtractProfile(int column, int profileIndex, TopographyProcessType type)
         {
             // some range checks
-            if (column < 0) return invalidProfile;
-            if (column >= NumberOfColumns) return invalidProfile;
-            if (profileIndex < 0) return invalidProfile;
-            if (profileIndex > scanMetaData.NumberOfProfiles) return invalidProfile; // starts at 1 !
+            if (column < 0) return InvalidProfile();
+            if (column >= NumberOfColumns) return InvalidProfile();
+            if (profileIndex < 0) return InvalidProfile();
+            if (profileIndex > scanMetaData.NumberOfProfiles) return InvalidProfile(); // starts at 1 !
             if (profileIndex == 0)
                 return ProcessTwoProfiles(AllProfiles(column, ScanDirection.Forward), AllProfiles(column, ScanDirection.Backward), type);
             return ProcessTwoProfiles(SingleProfile(column, profileIndex, ScanDirection.Forward), SingleProfile(column, profileIndex, ScanDirection.Backward), type);
@@ -124,7 +123,7 @@ namespace Bev.IO.NmmReader.scan_mode
             switch (type)
             {
                 case TopographyProcessType.None:
-                    return invalidProfile;
+                    return InvalidProfile();
                 case TopographyProcessType.ForwardOnly:
                     return fwdProfile;
                 case TopographyProcessType.BackwardOnly:
@@ -152,6 +151,7 @@ namespace Bev.IO.NmmReader.scan_mode
             int offset = scanMetaData.NumberOfDataPoints * (profileIndex - 1);
             if (scanDirection == ScanDirection.Forward)
             {
+                if (fwdMatrix == null) return InvalidProfile();
                 for (int i = 0; i < scanMetaData.NumberOfDataPoints; i++)
                 {
                     resultProfile[i] = fwdMatrix[column, i + offset];
@@ -159,6 +159,7 @@ namespace Bev.IO.NmmReader.scan_mode
             }
             if (scanDirection == ScanDirection.Backward)
             {
+                if (bwdMatrix == null) return InvalidProfile();
                 for (int i = 0; i < scanMetaData.NumberOfDataPoints; i++)
                 {
                     resultProfile[i] = bwdMatrix[column, i + offset];
@@ -173,6 +174,7 @@ namespace Bev.IO.NmmReader.scan_mode
             double[] resultProfile = new double[NumberTotalPoints];
             if (scanDirection == ScanDirection.Forward)
             {
+                if (fwdMatrix == null) return InvalidProfileAll();
                 for (int i = 0; i < NumberTotalPoints; i++)
                 {
                     resultProfile[i] = fwdMatrix[column, i];
@@ -180,6 +182,7 @@ namespace Bev.IO.NmmReader.scan_mode
             }
             if (scanDirection == ScanDirection.Backward)
             {
+                if (bwdMatrix == null) return InvalidProfileAll();
                 for (int i = 0; i < NumberTotalPoints; i++)
                 {
                     resultProfile[i] = bwdMatrix[column, i];
@@ -197,10 +200,18 @@ namespace Bev.IO.NmmReader.scan_mode
             }
         }
 
+        private double[] InvalidProfile()
+        {
+            return Enumerable.Repeat(double.NaN, NumberOfPointsPerProfile).ToArray();
+        }
+
+        private double[] InvalidProfileAll()
+        {
+            return Enumerable.Repeat(double.NaN, NumberTotalPoints).ToArray();
+        }
 
         private readonly double[,] fwdMatrix;
         private readonly double[,] bwdMatrix;
-        private readonly double[] invalidProfile;
         private readonly ScanMetaData scanMetaData;
 
         #endregion

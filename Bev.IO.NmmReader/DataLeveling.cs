@@ -175,9 +175,9 @@ namespace Bev.IO.NmmReader
             double sigmaXY = xy.Sum();
             slopeX = ((n * sigmaXY) - (sigmaX * sigmaY)) / ((n * sigmaXX) - (sigmaX * sigmaX));
             intercept = (sigmaY - (slopeX * sigmaX)) / (double)n;
-            // The algorithm used is a straightforward implementation
-            // taking into account the arithmetic series of the x-array, a faster calculation would be possible
-            // TODO find fast implementation
+            // The algorithm used is a straightforward implementation.
+            // taking into account the arithmetic series of the x-array, a more efficient calculation would be possible
+            // TODO find efficient implementation!
             //slopeX = (12.0 * sigmaXY - 6.0 * (n - 1.0) * rawData.Sum()) / (n * (n * n + 1.0));
             //intercept = AverageValue - 0.5 * slopeX * (n * (n - 1.0));
         }
