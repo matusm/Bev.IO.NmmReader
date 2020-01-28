@@ -36,6 +36,9 @@ namespace Bev.IO.NmmReader
 
         public double[] LevelData(ReferenceTo mode)
         {
+            slopeX = 0.0;
+            slopeY = 0.0;
+            intercept = 0.0;
             switch(GetDataType())
             {
                 case DataType.Unknown:
@@ -91,10 +94,12 @@ namespace Bev.IO.NmmReader
                     intercept = BiasValue;
                     break;
                 case ReferenceTo.Line:
+                case ReferenceTo.LinePositive:
                     intercept = FirstValue;
                     slopeX = (LastValue - FirstValue) / (rawData.Length - 1);
                     break;
                 case ReferenceTo.Lsq:
+                case ReferenceTo.LsqPositive:
                     FitLsqLine();
                     break;
             }
@@ -102,6 +107,13 @@ namespace Bev.IO.NmmReader
             for (int i = 0; i < rawData.Length; i++)
             {
                 leveledData[i] = sign * (rawData[i] - (intercept + (slopeX * (double)i)));
+            }
+            // check if positive values were asked for
+            if (mode == ReferenceTo.LinePositive || mode == ReferenceTo.LsqPositive)
+            {
+                double min = leveledData.Min();
+                for (int i = 0; i < leveledData.Length; i++)
+                    leveledData[i] += min;
             }
             return leveledData;
         }
@@ -140,11 +152,13 @@ namespace Bev.IO.NmmReader
                     intercept = BiasValue;
                     break;
                 case ReferenceTo.Line:
+                case ReferenceTo.LinePositive:
                     intercept = FirstValue;
                     slopeX = (rawData[numPoints - 1] - FirstValue) / (numPoints - 1);
                     slopeY = (rawData[rawData.Length - numPoints] - FirstValue) / (numProfiles - 1);
                     break;
                 case ReferenceTo.Lsq:
+                case ReferenceTo.LsqPositive:
                     FitLsqPlane();
                     break;
             }
@@ -152,6 +166,13 @@ namespace Bev.IO.NmmReader
             for (int i = 0; i < numPoints; i++)
                 for (int j = 0; j < numProfiles; j++)
                     leveledData[i + j * numPoints] = sign * (rawData[i + (j * numPoints)] - (intercept + (slopeX * (double)i) + (slopeY * (double)j)));
+            // check if positive values were asked for
+            if (mode==ReferenceTo.LinePositive || mode==ReferenceTo.LsqPositive)
+            {
+                double min = leveledData.Min();
+                for (int i = 0; i < leveledData.Length; i++)
+                    leveledData[i] += min;
+            }
             return leveledData;
         }
 
@@ -258,6 +279,10 @@ namespace Bev.IO.NmmReader
                     return "Profile leveled to line connecting boundary points";
                 case ReferenceTo.Lsq:
                     return "Profile leveled to least square line";
+                case ReferenceTo.LinePositive:
+                    return "Profile leveled parallel to line connecting boundary points, always positive";
+                case ReferenceTo.LsqPositive:
+                    return "Profile leveled parallel to least square line, always positive";
                 default:
                     return "this should not happen!";
             }
@@ -289,6 +314,10 @@ namespace Bev.IO.NmmReader
                     return "Three point surface leveling";
                 case ReferenceTo.Lsq:
                     return "Surface leveled to least square plane";
+                case ReferenceTo.LinePositive:
+                    return "Three point surface leveling, always positive";
+                case ReferenceTo.LsqPositive:
+                    return "Surface leveled parallel to least square plane, always positive";
                 default:
                     return "this should not happen!";
             }
@@ -321,17 +350,19 @@ namespace Bev.IO.NmmReader
 
     public enum ReferenceTo
     {
-        None = 0,       // do not change the height data
-        Minimum = 1,    // reference height data to minimal z-value
-        Maximum = 2,    // reference height data to maximal z-value
-        Average = 3,    // reference height data to arithmetic mean z-value
-        Central = 4,    // reference height data to mid of span z-value
-        Bias = 5,       // reference height data to user defined bias z-value
-        First = 6,      // reference height data to first value
-        Last = 7,       // reference height data to last value
-        Center = 8,     // reference height data to center value
-        Line = 9,       // subtract linear line (first to last point) / three point plane
-        Lsq = 10        // subtract least square linear line / plane
+        None = 0,           // do not change the height data
+        Minimum = 1,        // reference height data to minimal z-value
+        Maximum = 2,        // reference height data to maximal z-value
+        Average = 3,        // reference height data to arithmetic mean z-value
+        Central = 4,        // reference height data to mid of span z-value
+        Bias = 5,           // reference height data to user defined bias z-value
+        First = 6,          // reference height data to first value
+        Last = 7,           // reference height data to last value
+        Center = 8,         // reference height data to center value
+        Line = 9,           // subtract linear line (first to last point) / three point plane
+        Lsq = 10,           // subtract least square linear line / plane
+        LsqPositive = 11,   // subtract least square linear line / plane and shift to positve values
+        LinePositive = 12   // subtract linear line (first to last point) / three point plane and shift to positve values
     }
 
     public enum DataType
