@@ -87,6 +87,14 @@ namespace Bev.IO.NmmReader.scan_mode
             return -1;
         }
 
+        public bool ColumnPresent(string columnSymbol)
+        {
+            if (GetColumnIndexFor(columnSymbol) == -1)
+                return false;
+            else
+                return true;
+        }
+
         public ScanColumnPredicate GetPredicateFor(int columnIndex)
         {
             if (columnIndex < 0) return null;
