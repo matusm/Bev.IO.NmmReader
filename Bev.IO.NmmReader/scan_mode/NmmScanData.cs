@@ -1,14 +1,17 @@
 ﻿//****************************************************************************************
 //
-// This is the main class for reading surface scans!
-// Class to handle topographic surface scan data (including all metadata) of the SIOS NMM.
+// Class to handle topographic surface scan data (including all metadata)
+// of the SIOS NMM.
+// This is the main class for input of surface scans!
 //
 // Usage:
 // 1.) Create an instance of the NmmFileName class.
-// 2.) Create an instance of NmmScanData (this class) with the NmmFileName object as parameter.
-//     The constructor opens and consumes all relevant files.
-// 3.) Now profiles can be extracted in any order by ExtractProfile(). 
-//     The profiles are identified by their numerical index
+// 2.) Create an instance of NmmScanData (this class) with the NmmFileName
+//     object as parameter. The constructor opens and consumes
+//     all relevant files.
+// 3.) profiles can be extracted in any order by ExtractProfile(). 
+//     The profiles are identified either by their numerical index
+//     starting at 1 or by the ColumnSymbol (a string)
 // 4.) Meta data can be extracted from the MetaData property. 
 // 
 // 
@@ -16,6 +19,7 @@
 //
 //****************************************************************************************
 
+using System;
 
 namespace Bev.IO.NmmReader.scan_mode
 {
@@ -29,7 +33,7 @@ namespace Bev.IO.NmmReader.scan_mode
             MetaData = new ScanMetaData();
             MetaData.AddDataFrom(fileNameObject);
             MetaData.AddDataFrom(new NmmInstrumentCharacteristcs());
-            // firs read the description file so we can check if requested scan index is valid
+            // first read the description file so we can check if requested scan index is valid
             MetaData.AddDataFrom(new NmmDescriptionFileParser(fileNameObject));
             // now perform the scan index checks
             if (MetaData.NumberOfScans > 1)
@@ -91,8 +95,7 @@ namespace Bev.IO.NmmReader.scan_mode
         {
             if (GetColumnIndexFor(columnSymbol) == -1)
                 return false;
-            else
-                return true;
+            return true;
         }
 
         public ScanColumnPredicate GetPredicateFor(int columnIndex)
@@ -132,6 +135,7 @@ namespace Bev.IO.NmmReader.scan_mode
             }
         }
 
+        // the column "XYvec" is 
         private void LoadTopographyDataBwd()
         {
             double[] dataLine = new double[MetaData.NumberOfColumnsInFile];

@@ -22,6 +22,7 @@
 //****************************************************************************************
 
 
+using System;
 using System.Linq;
 
 namespace Bev.IO.NmmReader.scan_mode
@@ -38,6 +39,7 @@ namespace Bev.IO.NmmReader.scan_mode
             NumberOfProfiles = scanMetaData.NumberOfProfiles;
             NumberOfPointsPerProfile = scanMetaData.NumberOfDataPoints;
             NumberTotalPoints = NumberOfPointsPerProfile * NumberOfProfiles;
+            columnNumberOfXYvec = GetColumnIndexFor("XYvec"); // magic string!
             switch (scanMetaData.ScanStatus)
             {
                 case ScanDirectionStatus.ForwardOnly:
@@ -62,7 +64,7 @@ namespace Bev.IO.NmmReader.scan_mode
 
         #endregion
 
-    
+
         #region Properties
         // the size of the two matrices
         public int NumberOfProfiles { get; private set; }
@@ -164,6 +166,11 @@ namespace Bev.IO.NmmReader.scan_mode
                 {
                     resultProfile[i] = bwdMatrix[column, i + offset];
                 }
+                // if profile == XYvec than reverse profile
+                if(column == columnNumberOfXYvec)
+                {
+                    Array.Reverse(resultProfile);
+                }
             }
             return resultProfile;
         }
@@ -186,6 +193,11 @@ namespace Bev.IO.NmmReader.scan_mode
                 for (int i = 0; i < NumberTotalPoints; i++)
                 {
                     resultProfile[i] = bwdMatrix[column, i];
+                }
+                // if profile == XYvec than reverse profile
+                if (column == columnNumberOfXYvec)
+                {
+                    Array.Reverse(resultProfile);
                 }
             }
             return resultProfile;
@@ -210,9 +222,21 @@ namespace Bev.IO.NmmReader.scan_mode
             return Enumerable.Repeat(double.NaN, NumberTotalPoints).ToArray();
         }
 
+        // an equivalent method is defined also in NmmScanData class!
+        // only needed once in the constructor
+        private int GetColumnIndexFor(string columnSymbol)
+        {
+            for (int i = 0; i < scanMetaData.NumberOfColumnsInFile; i++)
+            {
+                if (scanMetaData.ColumnPredicates[i].IsOf(columnSymbol)) return i;
+            }
+            return -1;
+        }
+
         private readonly double[,] fwdMatrix;
         private readonly double[,] bwdMatrix;
         private readonly ScanMetaData scanMetaData;
+        private readonly int columnNumberOfXYvec;
 
         #endregion
     }
