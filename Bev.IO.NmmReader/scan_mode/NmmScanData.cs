@@ -20,6 +20,7 @@
 //****************************************************************************************
 
 using System;
+using System.Linq;
 
 namespace Bev.IO.NmmReader.scan_mode
 {
@@ -58,6 +59,8 @@ namespace Bev.IO.NmmReader.scan_mode
             LoadTopographyData();
             // contrary to similar classes of this library, the dat-files are not closed implicitely
             nmmDat.Close();
+            // populate MetaData with absolute center coordinates
+            PopulateFieldCenter();
         }
 
         #endregion
@@ -135,7 +138,6 @@ namespace Bev.IO.NmmReader.scan_mode
             }
         }
 
-        // the column "XYvec" is 
         private void LoadTopographyDataBwd()
         {
             double[] dataLine = new double[MetaData.NumberOfColumnsInFile];
@@ -157,6 +159,29 @@ namespace Bev.IO.NmmReader.scan_mode
                     topographyData.InsertDataLineAt(dataLine, lineIndex, ScanDirection.Backward);
                 }
             }
+        }
+
+        private void PopulateFieldCenter()
+        {
+            double centerX = double.NaN;
+            double centerY = double.NaN;
+            double centerZ = double.NaN;
+            if(ColumnPresent("LX"))
+            {
+                double[] tempData = ExtractProfile("LX", 0, TopographyProcessType.ForwardOnly);
+                centerX = (tempData.First()+tempData.Last())/2.0;
+            }
+            if(ColumnPresent("LY"))
+            {
+                double[] tempData = ExtractProfile("LY", 0, TopographyProcessType.ForwardOnly);
+                centerY = (tempData.First() + tempData.Last()) / 2.0;
+            }
+            if (ColumnPresent("LZ"))
+            {
+                double[] tempData = ExtractProfile("LY", 0, TopographyProcessType.ForwardOnly);
+                centerZ = tempData[tempData.Length/2];
+            }
+            MetaData.AddScanCenterCoordinates(centerX, centerY, centerZ);
         }
 
         // fields

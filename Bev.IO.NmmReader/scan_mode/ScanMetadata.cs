@@ -29,6 +29,9 @@ namespace Bev.IO.NmmReader.scan_mode
         public double ScanFieldDimensionY { get; private set; }
         public double ScanSpeed { get; private set; }
         public double ScanFieldRotation { get; private set; }
+        public double ScanFieldCenterX { get; private set; }
+        public double ScanFieldCenterY { get; private set; }
+        public double ScanFieldCenterZ { get; private set; }
         // additional metadata
         public string BaseFileName { get; private set; }
         public int ScanIndex { get; private set; }
@@ -88,6 +91,13 @@ namespace Bev.IO.NmmReader.scan_mode
                 FillInstrumentData(obj as NmmInstrumentCharacteristcs);
             if (obj is NmmFileName)
                 FillFileData(obj as NmmFileName);
+        }
+
+        public void AddScanCenterCoordinates(double x, double y, double z)
+        {
+            ScanFieldCenterX = x;
+            ScanFieldCenterY = y;
+            ScanFieldCenterZ = z;
         }
 
         public string ToDebugString()
