@@ -19,7 +19,6 @@
 //
 //****************************************************************************************
 
-using System;
 using System.Linq;
 
 namespace Bev.IO.NmmReader.scan_mode
