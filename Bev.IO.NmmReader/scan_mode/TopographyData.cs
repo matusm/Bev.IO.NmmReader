@@ -81,6 +81,7 @@ namespace Bev.IO.NmmReader.scan_mode
             // some range checks
             if (position >= NumberTotalPoints) return;
             if (position < 0) return;
+            if (dataLine == null) return;
             if (dataLine.Length != NumberOfColumns) return;
             if (scanDirection == ScanDirection.Unknown) return;
             if (scanDirection == ScanDirection.Forward)
