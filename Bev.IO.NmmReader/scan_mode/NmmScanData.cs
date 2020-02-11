@@ -177,7 +177,7 @@ namespace Bev.IO.NmmReader.scan_mode
             }
             if (ColumnPresent("LZ"))
             {
-                double[] tempData = ExtractProfile("LY", 0, TopographyProcessType.ForwardOnly);
+                double[] tempData = ExtractProfile("LZ", 0, TopographyProcessType.ForwardOnly);
                 centerZ = tempData[tempData.Length/2];
             }
             MetaData.AddScanCenterCoordinates(centerX, centerY, centerZ);
