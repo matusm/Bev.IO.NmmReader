@@ -8,7 +8,7 @@ The Nanopositioning and Nanomeasuring Machine (NMM) by [SIOS GmbH](https://sios-
 
 The system is usually operated by a custom software (nmmcontrol.exe) running in a MS Windows environment. The results are stored in a multitude of text files with proprietary data formats. Depending on the measurement mode (scan or 3D mode, respectively) a number of different files are produced. The nonstandard data format together with some bugs in the control software complicates the correct data interpretation somewhat. This fact is reflected in the complex structure of this library.
 
-The API of this library allows to handle files produced by either mode of measurement in a consistent way. 
+The API of this library allows to handle files produced by either mode in a consistent way. 
 
 ## Library structure
 
@@ -20,10 +20,10 @@ The library is composed of a lot of classes. Some classes are needed for both mo
 Handles the different file name extensions produced by the control software in either mode. The possibility to repeat measurement tasks is mapped by this class also.
  
 * `NmmInstrumentCharacteristcs`
-Provides properties of the specific instrument, site and operator. Since this information is not extracteable from the data files it must be hard-wired in this class.
+Provides properties of the specific instrument, site and operator. Since this information is not extractable from the data files it must be hard-wired in this class.
  
 * `NmmEnvironmentData`
-Encapsulates the download of environmental sensor data recorded by a measurement on the NMM. Evaluated parameters are provided as properties. All valid *.pos files are automaticaly consumed by this class: Scan files (forward and backward), 3D-files, with or without sample temperature sensor channel.
+Encapsulates the download of environmental sensor data recorded by a measurement on the NMM. Evaluated parameters are provided as properties. All valid *.pos files are automatically consumed by this class: Scan files (forward and backward), 3D-files, with or without sample temperature sensor channel.
 
 * `NmmDescriptionFileParser`
 Class consumes description files (*.dsc) produced during either a scan or a 3D measurement on the NMM. Backtrace description files are ignored.
@@ -35,7 +35,7 @@ Class consumes description files (*.dsc) produced during either a scan or a 3D m
 This is the main class for reading surface scans. Class to handle topographic surface scan data (including all metadata) of the NMM.
  
 * `TopographyData`
-Class to store and retreive the topographic surface scan data of the NMM.
+Class to store and retrieve the topographic surface scan data of the NMM.
  
 * `ScanMetaData`
 A container class for metadata of a NMM scan file collection.
@@ -44,7 +44,7 @@ A container class for metadata of a NMM scan file collection.
 A simple container class to hold the title and corresponding measurement unit for the data columns of NMM scan files.
  
 * `Scan`
-A convienient container for some methods used to evaluate NMM scan files.
+A convenient container for some methods used to evaluate NMM scan files.
  
 * `NmmIndFileParser`
 This Class consumes the index files (*.ind) produced during a scan on the SIOS NMM. The data is provided by properties only, there are no public methods.
