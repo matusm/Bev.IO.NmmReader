@@ -29,6 +29,12 @@
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="System" />
+    <Reference Include="MathNet.Numerics">
+      <HintPath>..\packages\MathNet.Numerics.4.9.0\lib\net40\MathNet.Numerics.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Core" />
+    <Reference Include="System.Numerics" />
+    <Reference Include="System.Runtime.Serialization" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="3d_mode\ObjectType.cs" />
@@ -47,7 +53,11 @@
     <Compile Include="NmmInstrumentCharacteristcs.cs" />
     <Compile Include="scan_mode\ScanMetadata.cs" />
     <Compile Include="DataLeveling.cs" />
+    <Compile Include="scan_mode\Heydemann.cs" />
   </ItemGroup>
   <ItemGroup />
+  <ItemGroup>
+    <None Include="packages.config" />
+  </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
 </Project>
