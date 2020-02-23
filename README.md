@@ -59,3 +59,7 @@ This is an enumeration for the predefined 3D objects (like spheres or planes) wh
 
 3D mode is not implemented yet.
 
+## Dependencies
+
+The Heydemann correction is performed with straight forward matrix algebra using [Math.NET numerics](https://numerics.mathdotnet.com)
+
