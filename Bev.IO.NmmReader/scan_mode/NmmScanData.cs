@@ -107,6 +107,11 @@ namespace Bev.IO.NmmReader.scan_mode
             return MetaData.ColumnPredicates[columnIndex];
         }
 
+        public ScanColumnPredicate GetPredicateFor(string columnSymbol)
+        {
+            return GetPredicateFor(GetColumnIndexFor(columnSymbol));
+        }
+
         #endregion
 
         #region Private stuff
