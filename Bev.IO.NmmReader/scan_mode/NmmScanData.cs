@@ -19,6 +19,7 @@
 //
 //****************************************************************************************
 
+using System;
 using System.Linq;
 
 namespace Bev.IO.NmmReader.scan_mode
@@ -60,6 +61,8 @@ namespace Bev.IO.NmmReader.scan_mode
             nmmDat.Close();
             // populate MetaData with absolute center coordinates
             PopulateFieldCenter();
+            HeydemannCorrectionApplied = false;
+            HeydemannCorrectionSpan = 0.0;
         }
 
         #endregion
@@ -67,6 +70,8 @@ namespace Bev.IO.NmmReader.scan_mode
         #region Properties
 
         public ScanMetaData MetaData { get; private set; }
+        public bool HeydemannCorrectionApplied { get; private set; }
+        public double HeydemannCorrectionSpan { get; private set; }
 
         #endregion
 
@@ -110,6 +115,41 @@ namespace Bev.IO.NmmReader.scan_mode
         public ScanColumnPredicate GetPredicateFor(string columnSymbol)
         {
             return GetPredicateFor(GetColumnIndexFor(columnSymbol));
+        }
+
+        public void CorrectHeydemann()
+        {
+            // only the topograhy height will be corrected
+            if (HeydemannCorrectionApplied) return;
+            if (!ColumnPresent("LZ")) return;
+            if (!ColumnPresent("F4")) return;
+            if (!ColumnPresent("F5")) return;
+
+            var heydemann = new Heydemann(
+                ExtractProfile("LZ", 0, TopographyProcessType.ForwardOnly),
+                ExtractProfile("F4", 0, TopographyProcessType.ForwardOnly),
+                ExtractProfile("F5", 0, TopographyProcessType.ForwardOnly));
+            if (heydemann.Status == CorrectionStatus.Corrected)
+            {
+                topographyData.InsertColumnFor(GetColumnIndexFor("-LZ+AZ"), heydemann.CorrectedData, ScanDirection.Forward);
+                HeydemannCorrectionApplied = true;
+                HeydemannCorrectionSpan = heydemann.CorrectionSpan;
+            }
+            if (MetaData.ScanStatus == ScanDirectionStatus.ForwardAndBackward ||
+                MetaData.ScanStatus == ScanDirectionStatus.ForwardAndBackwardJustified)
+            {
+                heydemann = new Heydemann(
+                    ExtractProfile("LZ", 0, TopographyProcessType.BackwardOnly),
+                    ExtractProfile("F4", 0, TopographyProcessType.BackwardOnly),
+                    ExtractProfile("F5", 0, TopographyProcessType.BackwardOnly));
+                if (heydemann.Status == CorrectionStatus.Corrected)
+                {
+                    topographyData.InsertColumnFor(GetColumnIndexFor("-LZ+AZ"), heydemann.CorrectedData, ScanDirection.Backward);
+                    HeydemannCorrectionApplied = true;
+                    HeydemannCorrectionSpan = Math.Max(HeydemannCorrectionSpan, heydemann.CorrectionSpan);
+                }
+            }
+
         }
 
         #endregion
@@ -170,12 +210,12 @@ namespace Bev.IO.NmmReader.scan_mode
             double centerX = double.NaN;
             double centerY = double.NaN;
             double centerZ = double.NaN;
-            if(ColumnPresent("LX"))
+            if (ColumnPresent("LX"))
             {
                 double[] tempData = ExtractProfile("LX", 0, TopographyProcessType.ForwardOnly);
-                centerX = (tempData.First()+tempData.Last())/2.0;
+                centerX = (tempData.First() + tempData.Last()) / 2.0;
             }
-            if(ColumnPresent("LY"))
+            if (ColumnPresent("LY"))
             {
                 double[] tempData = ExtractProfile("LY", 0, TopographyProcessType.ForwardOnly);
                 centerY = (tempData.First() + tempData.Last()) / 2.0;
@@ -183,7 +223,7 @@ namespace Bev.IO.NmmReader.scan_mode
             if (ColumnPresent("LZ"))
             {
                 double[] tempData = ExtractProfile("LZ", 0, TopographyProcessType.ForwardOnly);
-                centerZ = tempData[tempData.Length/2];
+                centerZ = tempData[tempData.Length / 2];
             }
             MetaData.AddScanCenterCoordinates(centerX, centerY, centerZ);
         }

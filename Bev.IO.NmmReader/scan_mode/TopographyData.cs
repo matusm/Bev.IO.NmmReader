@@ -68,25 +68,27 @@ namespace Bev.IO.NmmReader.scan_mode
 
         #region Methods
 
-        // this is used for Heydemann correction measures 
-        public void InsertColumnFor(int columnIndex, double[] profile, ScanDirection scanDirection)
+        // this is used for Heydemann correction measures
+        // the whole field (= all profiles) must be provided at once
+        public void InsertColumnFor(int columnIndex, double[] field, ScanDirection scanDirection)
         {
             if (columnIndex >= NumberOfColumns) return;
             if (columnIndex < 0) return;
+            if (field.Length != NumberTotalPoints) return;
             if (scanDirection == ScanDirection.Forward)
             {
                 if (fwdMatrix == null) return;
-                for (int i = 0; i < profile.Length; i++)
+                for (int i = 0; i < field.Length; i++)
                 {
-                    fwdMatrix[columnIndex, i] = profile[i];
+                    fwdMatrix[columnIndex, i] = field[i];
                 }
             }
             if (scanDirection == ScanDirection.Backward)
             {
                 if (bwdMatrix == null) return;
-                for (int i = 0; i < profile.Length; i++)
+                for (int i = 0; i < field.Length; i++)
                 {
-                    bwdMatrix[columnIndex, i] = profile[i];
+                    bwdMatrix[columnIndex, i] = field[i];
                 }
             }
         }
