@@ -4,20 +4,16 @@
 //
 // Usage:
 // 1.) create an instance of the ScanMetaData class of the respective data files
-// 2.) create an nstance of TopographyData (this class) with the ScanMetaData object as parameter
+// 2.) create an instance of TopographyData (this class) with the ScanMetaData object as parameter
 // 3.) populate this object with data line by line using InsertDataLineAt()
 // 4.) now profiles can be extracted in any order by ExtractProfile(). 
 //     The profiles are identified by their numerical index
-//
 // 
 // The method InsertDataLineAt() is optimized for useage by a simple file parser.
 // Profile index 0 is interpreted as returning all profiles at once by ExtractProfile().
 // Hence profiles are enumerated starting at 1
 // 
-// 
-// 
 // Author: Michael Matus, 2019
-//
 //
 //****************************************************************************************
 
@@ -31,7 +27,6 @@ namespace Bev.IO.NmmReader.scan_mode
     {
 
         #region Ctor
-
         public TopographyData(ScanMetaData scanMetaData)
         {
             this.scanMetaData = scanMetaData;
@@ -61,9 +56,7 @@ namespace Bev.IO.NmmReader.scan_mode
                     break;
             }
         }
-
         #endregion
-
 
         #region Properties
         // the size of the two matrices
@@ -75,6 +68,30 @@ namespace Bev.IO.NmmReader.scan_mode
 
         #region Methods
 
+        // this is used for Heydemann correction measures 
+        public void InsertColumnFor(int columnIndex, double[] profile, ScanDirection scanDirection)
+        {
+            if (columnIndex >= NumberOfColumns) return;
+            if (columnIndex < 0) return;
+            if (scanDirection == ScanDirection.Forward)
+            {
+                if (fwdMatrix == null) return;
+                for (int i = 0; i < profile.Length; i++)
+                {
+                    fwdMatrix[columnIndex, i] = profile[i];
+                }
+            }
+            if (scanDirection == ScanDirection.Backward)
+            {
+                if (bwdMatrix == null) return;
+                for (int i = 0; i < profile.Length; i++)
+                {
+                    bwdMatrix[columnIndex, i] = profile[i];
+                }
+            }
+        }
+
+
         // This is used to populate the matrices line by line (usually during the file reading)
         public void InsertDataLineAt(double[] dataLine, int position, ScanDirection scanDirection)
         {
@@ -83,7 +100,6 @@ namespace Bev.IO.NmmReader.scan_mode
             if (position < 0) return;
             if (dataLine == null) return;
             if (dataLine.Length != NumberOfColumns) return;
-            if (scanDirection == ScanDirection.Unknown) return;
             if (scanDirection == ScanDirection.Forward)
             {
                 if (fwdMatrix == null) return;
