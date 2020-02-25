@@ -117,16 +117,18 @@ namespace Bev.IO.NmmReader.scan_mode
             return GetPredicateFor(GetColumnIndexFor(columnSymbol));
         }
 
-        public void CorrectHeydemann()
+        // currently this works only for the "-LZ+AZ" channel
+        // LX, LY, LZ are not corrected!
+        public void ApplyHeydemannCorrection()
         {
             // only the topograhy height will be corrected
             if (HeydemannCorrectionApplied) return;
-            if (!ColumnPresent("LZ")) return;
+            if (!ColumnPresent("-LZ+AZ")) return;
             if (!ColumnPresent("F4")) return;
             if (!ColumnPresent("F5")) return;
 
             var heydemann = new Heydemann(
-                ExtractProfile("LZ", 0, TopographyProcessType.ForwardOnly),
+                ExtractProfile("-LZ+AZ", 0, TopographyProcessType.ForwardOnly),
                 ExtractProfile("F4", 0, TopographyProcessType.ForwardOnly),
                 ExtractProfile("F5", 0, TopographyProcessType.ForwardOnly));
             if (heydemann.Status == CorrectionStatus.Corrected)

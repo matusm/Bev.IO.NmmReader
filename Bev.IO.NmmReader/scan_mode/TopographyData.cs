@@ -70,7 +70,7 @@ namespace Bev.IO.NmmReader.scan_mode
 
         // this is used for Heydemann correction measures
         // the whole field (= all profiles) must be provided at once
-        public void InsertColumnFor(int columnIndex, double[] field, ScanDirection scanDirection)
+        internal void InsertColumnFor(int columnIndex, double[] field, ScanDirection scanDirection)
         {
             if (columnIndex >= NumberOfColumns) return;
             if (columnIndex < 0) return;
