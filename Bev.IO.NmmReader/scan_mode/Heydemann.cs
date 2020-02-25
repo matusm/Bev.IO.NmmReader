@@ -1,4 +1,32 @@
-﻿using System;
+﻿//****************************************************************************************
+//
+// Class to compensate periodic errors in signals of homodyne laser interferometers
+//
+// Usage:
+// 1.) create an instance of the Heydemann with three arrays as parameters:
+//     - rawData: the actual length values in m to be corrected
+//     - sinValues: the respective sin-signal of the interferometer
+//     - cosValues: the respective cos-signal of the interferometer
+// 2.) consume the corrected data via the CorrectedData property
+// 
+// There are no user accessible methods for this class.
+// However some properties (getters) provide details on the correction status,
+// most important is CorrectionSpan (in m) the maximum correction applied,
+// and Status which gives information if there was an correction at all.
+// in cases where there is no correction possible, CorrectionData just equals rawData.
+// 
+// Simply speaking the algorithm fits an ellipse in the sin/cos data.
+// For this MathNet.Numerics.LinearAlgebra is used.
+// The parameters of the fitted ellipse are accessible, too.
+//
+// The whole calculation is performed in the constructor only.
+// 
+// Author: Michael Matus, 2020
+//
+//****************************************************************************************
+
+
+using System;
 using MathNet.Numerics.LinearAlgebra;
 using System.Linq;
 
@@ -6,7 +34,7 @@ namespace Bev.IO.NmmReader.scan_mode
 {
     public class Heydemann
     {
-        private const double lambda2 = 316.4e-9; // Lambda/2
+        private const double lambda2 = 316.409754e-9; // Lambda/2 in m, for air and NMM laser rack
 
         #region Properties
         public CorrectionStatus Status { get; private set; } = CorrectionStatus.Unknown;
@@ -21,10 +49,12 @@ namespace Bev.IO.NmmReader.scan_mode
         public double AmplitudeRelation { get; private set; } = 1.0;
         #endregion
 
+        #region Ctor
         public Heydemann(double[] rawData, double[] sinValues, double[] cosValues)
         {
             PerformCorrection(rawData, sinValues, cosValues);
         }
+        #endregion
 
         #region Private stuff
         private void PerformCorrection(double[] rawData, double[] sinValues, double[] cosValues)
@@ -60,7 +90,7 @@ namespace Bev.IO.NmmReader.scan_mode
             for (int i = 0; i < rawData.Length; i++)
             {
                 deviation = HeydemannDeviationForPoint(sinValues[i], cosValues[i]);
-                CorrectedData[i] = rawData[i] - deviation;
+                CorrectedData[i] = rawData[i] - deviation; // ATENTION: the sign is valid only for rawData = -LZ+AZ !
                 if (deviation > maxDeviation) maxDeviation = deviation;
                 if (deviation < minDeviation) minDeviation = deviation;
             }
