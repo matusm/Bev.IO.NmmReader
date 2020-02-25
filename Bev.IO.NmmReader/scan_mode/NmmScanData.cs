@@ -141,7 +141,7 @@ namespace Bev.IO.NmmReader.scan_mode
                 MetaData.ScanStatus == ScanDirectionStatus.ForwardAndBackwardJustified)
             {
                 heydemann = new Heydemann(
-                    ExtractProfile("LZ", 0, TopographyProcessType.BackwardOnly),
+                    ExtractProfile("-LZ+AZ", 0, TopographyProcessType.BackwardOnly),
                     ExtractProfile("F4", 0, TopographyProcessType.BackwardOnly),
                     ExtractProfile("F5", 0, TopographyProcessType.BackwardOnly));
                 if (heydemann.Status == CorrectionStatus.Corrected)
