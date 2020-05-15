@@ -212,22 +212,28 @@ namespace Bev.IO.NmmReader.scan_mode
             double centerX = double.NaN;
             double centerY = double.NaN;
             double centerZ = double.NaN;
+            double originX = double.NaN;
+            double originY = double.NaN;
+            double originZ = double.NaN;
             if (ColumnPresent("LX"))
             {
                 double[] tempData = ExtractProfile("LX", 0, TopographyProcessType.ForwardOnly);
                 centerX = (tempData.First() + tempData.Last()) / 2.0;
+                originX = tempData.First();
             }
             if (ColumnPresent("LY"))
             {
                 double[] tempData = ExtractProfile("LY", 0, TopographyProcessType.ForwardOnly);
                 centerY = (tempData.First() + tempData.Last()) / 2.0;
+                originY = tempData.First();
             }
             if (ColumnPresent("LZ"))
             {
                 double[] tempData = ExtractProfile("LZ", 0, TopographyProcessType.ForwardOnly);
                 centerZ = tempData[tempData.Length / 2];
+                originZ = tempData.First();
             }
-            MetaData.AddScanCenterCoordinates(centerX, centerY, centerZ);
+            MetaData.AddScanFieldCoordinates(originX, originY, originZ, centerX, centerY, centerZ);
         }
 
         // fields

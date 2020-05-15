@@ -32,6 +32,9 @@ namespace Bev.IO.NmmReader.scan_mode
         public double ScanFieldCenterX { get; private set; }
         public double ScanFieldCenterY { get; private set; }
         public double ScanFieldCenterZ { get; private set; }
+        public double ScanFieldOriginX { get; private set; }
+        public double ScanFieldOriginY { get; private set; }
+        public double ScanFieldOriginZ { get; private set; }
         // additional metadata
         public string BaseFileName { get; private set; }
         public int ScanIndex { get; private set; }
@@ -93,11 +96,14 @@ namespace Bev.IO.NmmReader.scan_mode
                 FillFileData(obj as NmmFileName);
         }
 
-        public void AddScanCenterCoordinates(double x, double y, double z)
+        public void AddScanFieldCoordinates(double ox, double oy, double oz, double cx, double cy, double cz)
         {
-            ScanFieldCenterX = x;
-            ScanFieldCenterY = y;
-            ScanFieldCenterZ = z;
+            ScanFieldOriginX = ox;
+            ScanFieldOriginY = oy;
+            ScanFieldOriginZ = oz;
+            ScanFieldCenterX = cx;
+            ScanFieldCenterY = cy;
+            ScanFieldCenterZ = cz;
         }
 
         public string ToDebugString()
