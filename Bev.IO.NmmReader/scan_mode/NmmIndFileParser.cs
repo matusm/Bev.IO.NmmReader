@@ -3,6 +3,7 @@ using System.IO;
 using System.Collections.Generic;
 using System.Linq;
 using System.Globalization;
+using System.Text;
 
 namespace Bev.IO.NmmReader.scan_mode
 {
@@ -252,35 +253,27 @@ namespace Bev.IO.NmmReader.scan_mode
 
         private DateTime ParseTimeToken(string token)
         {
-            DateTime timeStamp = DateTime.UtcNow;
+            token = token.Trim();
+            DateTime timeStamp;
             try
             {
-                timeStamp = DateTime.ParseExact(token.Trim(), "dd-MMM-yyyy HH:mm:ss", new CultureInfo("de-DE")); // 01-Jan-2014 13:15:10
+                timeStamp = DateTime.ParseExact(token, "dd-MMM-yyyy HH:mm:ss", new CultureInfo("de-DE")); // 01-Jan-2014 13:15:10
                 return timeStamp;
             }
-            catch(FormatException e)
-            {
-                // fall through
-            }
+            catch (FormatException e) { } // fall through
             try
             {
-                timeStamp = DateTime.ParseExact(token.Trim(), "dd-MMM-yyyy HH:mm:ss", new CultureInfo("de-AT")); // 01-Jän-2014 13:15:10
+                timeStamp = DateTime.ParseExact(token, "dd-MMM-yyyy HH:mm:ss", new CultureInfo("de-AT")); // 01-Jän-2014 13:15:10
                 return timeStamp;
             }
-            catch (FormatException e)
-            {
-                // fall through
-            }
+            catch (FormatException e) { } // fall through
             try
             {
-                timeStamp = DateTime.ParseExact(token.Trim(), "dd-MMM-yyyy HH:mm:ss", CultureInfo.InvariantCulture ); // fallback
+                timeStamp = DateTime.ParseExact(token, "dd-MMM-yyyy HH:mm:ss", CultureInfo.InvariantCulture ); // fallback
                 return timeStamp;
             }
-            catch (FormatException e)
-            {
-                // fall through
-            }
-            return timeStamp;
+            catch (FormatException e) { } // fall through
+            return DateTime.UtcNow;
         }
 
         private readonly List<DateTime> forwardTimeStamps = new List<DateTime>();
