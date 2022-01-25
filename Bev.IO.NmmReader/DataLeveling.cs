@@ -4,7 +4,6 @@ namespace Bev.IO.NmmReader
 {
     public class DataLeveling
     {
-        #region Ctor
         public DataLeveling(double[] rawData, int numPoints, int numProfiles)
         {
             this.rawData = rawData;
@@ -14,9 +13,7 @@ namespace Bev.IO.NmmReader
         }
 
         public DataLeveling(double[] rawData, int numPoints) : this(rawData, numPoints, 1) { }
-        #endregion
 
-        #region Properties
         // misc
         public ReferenceTo Mode { get; private set; }
         public string LevelModeDescription => ModeToString(Mode);
@@ -30,9 +27,6 @@ namespace Bev.IO.NmmReader
         public double FirstValue => rawData[0];
         public double LastValue => rawData.Last();
         public double CenterValue => rawData[rawData.Length / 2];
-        #endregion
-
-        #region Methods
 
         public double[] LevelData(ReferenceTo mode)
         {
@@ -56,13 +50,8 @@ namespace Bev.IO.NmmReader
             }
         }
 
-        #endregion
-
-        #region Private stuff
-
         private double[] LevelProfileData( ReferenceTo mode )
         {
-            // prepare return field
             double[] leveledData = new double[rawData.Length];
             // calculate mode dependend parameters
             switch(mode)
@@ -120,7 +109,6 @@ namespace Bev.IO.NmmReader
 
         private double[] LevelRasterData(ReferenceTo mode)
         {
-            // prepare return field
             double[] leveledData = new double[rawData.Length];
             // calculate mode dependend parameters
             switch (mode)
@@ -177,7 +165,7 @@ namespace Bev.IO.NmmReader
         }
 
         // Fits a least square line to raster data
-        // works with equidistant spacing only
+        // works with equidistant spacing only !
         private void FitLsqLine()
         {
             int n = rawData.Length;
@@ -207,7 +195,6 @@ namespace Bev.IO.NmmReader
         // works only with rectangular ordered data with equidistant spacing
         // spacing in x and y can be different, however
         // implementation according to EUNA 15178 ENC eq. (9.7)
-        // the quantity symbols are 
         private void FitLsqPlane()
         {
             double u = 0.0, v = 0.0, w = 0.0;
@@ -340,9 +327,7 @@ namespace Bev.IO.NmmReader
         private double intercept; // constant part to be subtracted
         private double slopeX; // X-length dependend part to be subtracted
         private double slopeY; // Y-length dependend part to be subtracted
-        private double sign = 1.0; // sign factor (+1/-1); currently not used
-
-        #endregion
+        private readonly double sign = 1.0; // sign factor (+1/-1); currently not used
 
     }
 
