@@ -8,27 +8,15 @@ namespace Bev.IO.NmmReader
 {
     public class NmmFileName
     {
-        #region Ctor
-
         public NmmFileName(string path)
         {
             BasePath = Path.ChangeExtension(path, null);
             ScanIndex = 0;
         }
 
-        #endregion
-
-        #region Properties
-
-        public string BaseFileName { get { return Path.GetFileNameWithoutExtension(BasePath); } }
-
+        public string BaseFileName => Path.GetFileNameWithoutExtension(BasePath);
         public string BasePath { get; private set; }
-
         public int ScanIndex { get; private set; }
-
-        #endregion
-
-        #region Methods
 
         // setting index to 0 is used for a single scan without special filenames
         public void SetScanIndex(int index)
@@ -100,9 +88,6 @@ namespace Bev.IO.NmmReader
             return GetFileName(ScanDirection.Forward, extension, ScanIndex);
         }
 
-        #endregion
-
-        #region Private stuff
 
         private string GetFileName(ScanDirection direction, string extension, int index)
         {
@@ -141,13 +126,11 @@ namespace Bev.IO.NmmReader
             return Path.ChangeExtension(BasePath + "b", extension);
         }
 
-        #endregion
-
         public override string ToString()
         {
             if (ScanIndex == 0)
-                return string.Format("[NmmFileName: {0}]", BaseFileName);
-            return string.Format("[NmmFileName: {0} for scan: {1}]", BaseFileName, ScanIndex);
+                return $"[NmmFileName: {BaseFileName}]";
+            return $"[NmmFileName: {BaseFileName} for scan: {ScanIndex}]";
         }
 
     }
