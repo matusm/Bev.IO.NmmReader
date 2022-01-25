@@ -1,14 +1,11 @@
-﻿using System.IO;
+﻿using System;
+using System.IO;
 using System.Globalization;
 using System.Collections.Generic;
 using Bev.IO.NmmReader._3d_mode;
 
 namespace Bev.IO.NmmReader
 {
-    /// <summary>
-    /// Class consumes description files (*.dsc) produced during either a scan or a 3d measurement on the SIOS NMM.
-    /// Backtrace description files are not used by this class.
-    /// </summary>
     public class NmmDescriptionFileParser
     {
         static readonly NumberFormatInfo numFormat = new NumberFormatInfo() { NumberDecimalSeparator = "." };
@@ -16,20 +13,10 @@ namespace Bev.IO.NmmReader
         private const string ProbeType2 = "SIOS LFS-02";
         private const string ProbeType3 = "Xpress GannenXP";
 
-        #region Ctor
-
-        /// <summary>
-        /// Reads a description file and analyzes all relevant information.
-        /// Parameters are provided as properties.
-        /// </summary>
-        /// <param name="fileName">The file name.</param>
         public NmmDescriptionFileParser(NmmFileName fileName)
         {
-            // try to load files
             LoadDescriptionFile(fileName.GetDscFileName());
-            // determine the measurement procedure
             DetermineMeasurementProcedure();
-            // analyze data origin in more detail depending on procedure
             switch (Procedure)
             {
                 case MeasurementProcedure.Unknown:
@@ -48,10 +35,6 @@ namespace Bev.IO.NmmReader
             }
         }
 
-        #endregion
-
-        #region Properties
-
         // common (scan and 3d) properties
         public MeasurementProcedure Procedure { get; private set; } = MeasurementProcedure.Unknown;
         public string ProbeDesignation { get; private set; }
@@ -62,7 +45,7 @@ namespace Bev.IO.NmmReader
         public int NumberOfDataPoints { get; private set; }
 
         // scan properties
-        public List<string> ScanComments { get { return scanComments; } }
+        public List<string> ScanComments => scanComments;
         public string SpmTechnique { get; private set; } = "unknown SPM technique";
         public double ScanFieldDeltaX { get; private set; }
         public double ScanFieldDeltaY { get; private set; }
@@ -74,31 +57,23 @@ namespace Bev.IO.NmmReader
         public int NumberOfScans { get; private set; } = 0;
         public long DataMask { get; private set; }
 
-        #endregion
-
-        #region Private stuff
-
-        /// <summary>
-        /// Loads the description text file in a list of strings. Empty lines are discarded, remaining lines are trimmed.
-        /// </summary>
-        /// <param name="fileName">The file name.</param>
         private void LoadDescriptionFile(string fileName)
         {
-            if (!File.Exists(fileName))
+            try
             {
-                return;
+                string line;
+                StreamReader hFile = File.OpenText(fileName);
+                while ((line = hFile.ReadLine()) != null)
+                    if (!string.IsNullOrWhiteSpace(line))
+                        fileContent.Add(line.Trim());
+                hFile.Close();
             }
-            string line;
-            StreamReader hFile = File.OpenText(fileName);
-            while ((line = hFile.ReadLine()) != null)
-                if (!string.IsNullOrWhiteSpace(line))
-                    fileContent.Add(line.Trim());
-            if (hFile != null) hFile.Close();
+            catch (Exception)
+            {
+                // ignore
+            }
         }
 
-        /// <summary>
-        /// Determines the type of measurement procedure (scan, 3D, ...)
-        /// </summary>
         private void DetermineMeasurementProcedure()
         {
             if (fileContent.Count == 0) return;
@@ -122,9 +97,6 @@ namespace Bev.IO.NmmReader
             }
         }
 
-        /// <summary>
-        /// Analyzes number of data points, sample designation, probe sphere diameter and object type.
-        /// </summary>
         private void Parse3DObjectDescription()
         {
             string sTemp;
@@ -164,9 +136,6 @@ namespace Bev.IO.NmmReader
             }
         }
 
-        /// <summary>
-        /// Analyzes generic 3D files (nothing to analyze, unfortunately).
-        /// </summary>
         private void Parse3DPointDescription()
         {
             // not much one can extract from this type of file
@@ -175,9 +144,6 @@ namespace Bev.IO.NmmReader
             return;
         }
 
-        /// <summary>
-        /// Analyzes a multitude of different parameters for a topographic scan file.
-        /// </summary>
         private void ParseScanDescription()
         {
             objectType = ObjectType.None;
@@ -192,11 +158,6 @@ namespace Bev.IO.NmmReader
             ParseScanDescriptionForFieldParameters();
         }
 
-        /// <summary>
-        /// Extracts contents of a specific chapter as a list of strings.
-        /// </summary>
-        /// <param name="chapter">Title of chapter.</param>
-        /// <returns>Contents of the chapter.</returns>
         private List<string> ExtractChapterFromFile(string chapter)
         {
             List<string> temp = new List<string>();
@@ -216,9 +177,6 @@ namespace Bev.IO.NmmReader
             return temp;
         }
 
-        /// <summary>
-        /// This method determines the SPM probe type (AFM or LFS)
-        /// </summary>
         private void ParseScanDescriptionForProbe()
         {
             SpmTechnique = "unknown SPM technique";
@@ -238,9 +196,6 @@ namespace Bev.IO.NmmReader
             }
         }
 
-        /// <summary>
-        /// This method extracts the data mask.
-        /// </summary>
         private void ParseScanDescriptionForProcedure()
         {
             string sTemp;
@@ -254,9 +209,6 @@ namespace Bev.IO.NmmReader
             }
         }
 
-        /// <summary>
-        /// This method determines the scan field parameters.
-        /// </summary>
         private void ParseScanDescriptionForFieldParameters()
         {
             string sTemp;
@@ -342,7 +294,6 @@ namespace Bev.IO.NmmReader
         private List<string> scanProbeSystem = new List<string>(); // text lines following "2. Probe system"
         private List<string> scanFieldParameters = new List<string>(); // text lines following "3. Scan field"
         private List<string> scanComments = new List<string>(); // text lines following "5. Additional comments"
-        #endregion
 
     }
 }
