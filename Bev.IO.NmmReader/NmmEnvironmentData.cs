@@ -6,136 +6,52 @@ using System.Linq;
 
 namespace Bev.IO.NmmReader
 {
-    /// <summary>
-    /// Encapsulates the download of environmental sensor data recorded by a measurement on the SIOS NMM.
-    /// Evaluated parameters are provided as properties.
-    /// </summary>
-    /// <remarks>
-    /// All valid *.pos files are automaticaly consumed by this class.
-    /// Scan files (forward and backward), 3d-files, with or without sample temperature sensor channel. 
-    /// </remarks>
     public class NmmEnvironmentData
     {
         private static readonly double referenceTemperature = 20;
         private static readonly double referencePressure = 101300;
         private static readonly double referenceHumidity = 50;
-        // Files produced by the NMM are usually generated with the "." as decimal separator
         private static readonly NumberFormatInfo numFormat = new NumberFormatInfo() { NumberDecimalSeparator = "." };
 
-        #region Ctor
-
-        /// <summary>
-        /// Initializes a new instance of the <see cref="T:Bev.IO.NmmReader.NmmEnvironmentData"/> class.
-        /// </summary>
-        /// <param name="fileName">Base name for the data files.</param>
         public NmmEnvironmentData(NmmFileName fileName)
         {
-            // start with unknown status of sensor data
             airTemperatureOrigin = AirTemperatureOrigin.Unknown;
             sampleTemperatureOrigin = SampleTemperatureOrigin.Unknown;
-            // try to load files
             LoadSensorData(fileName.GetPosFileNameForScanIndex(ScanDirection.Forward));
             LoadSensorData(fileName.GetPosFileNameForScanIndex(ScanDirection.Backward));
-            // analyze data origin in more detail
             AnalyzeSensorOrigin();
         }
 
-        #endregion
-
-        #region Properties
-
-        public string AirSampleSourceText { get { return StatusDescription(); } }
-
+        public string AirSampleSourceText => StatusDescription();
         public EnvironmentDataStatus AirSampleSource { get; private set; }
+        public int NumberOfAirSamples => xTemperatureValues.Count();
+        public double AirTemperature => (XTemperature + YTemperature + ZTemperature) / 3.0;
+        public double AirTemperatureDrift => EstimateAirTemperatureDrift();
+        public double AirTemparatureGradient => EstimateAirTemperatureHomogeneity();
+        public double SampleTemperature => GetSampleTemperature();
+        public double SampleTemperatureDrift => GetSampleTemperatureDrift();
+        public double RelativeHumidity => EvaluateMean(humiditieValues, referenceHumidity);
+        public double RelativeHumidityDrift => EvaluateSpan(humiditieValues);
+        public double BarometricPressure => EvaluateMean(pressureValues, referencePressure);
+        public double BarometricPressureDrift => EvaluateSpan(pressureValues);
+        public double XTemperature => EvaluateMean(xTemperatureValues, referenceTemperature);
+        public double YTemperature => EvaluateMean(yTemperatureValues, referenceTemperature);
+        public double ZTemperature => EvaluateMean(zTemperatureValues, referenceTemperature);
 
-        /// <summary>
-        /// Gets the number of data points.
-        /// </summary>
-        public int NumberOfAirSamples { get { return xTemperatureValues.Count(); } }
-
-        /// <summary>
-        /// Gets the air temperature.
-        /// </summary>
-        public double AirTemperature { get { return (XTemperature + YTemperature + ZTemperature) / 3.0; } }
-
-        /// <summary>
-        /// Gets the span of air temperatures.
-        /// </summary>
-        public double AirTemperatureDrift { get { return EstimateAirTemperatureDrift(); } }
-
-        /// <summary>
-        /// Gets the gradient estimated by the three air thermometers.
-        /// </summary>
-        public double AirTemparatureGradient { get { return EstimateAirTemperatureHomogeneity(); } }
-
-        /// <summary>
-        /// Gets the sample temperature.
-        /// </summary>
-        public double SampleTemperature
+        private double GetSampleTemperature()
         {
-            get
-            {
-                if (sampleTemperatureOrigin == SampleTemperatureOrigin.EstimatedFromAir)
-                    return AirTemperature;
-                return EvaluateMean(sTemperatureValues, referenceTemperature);
-            }
+            if (sampleTemperatureOrigin == SampleTemperatureOrigin.EstimatedFromAir)
+                return AirTemperature;
+            return EvaluateMean(sTemperatureValues, referenceTemperature);
         }
 
-        /// <summary>
-        /// Gets the span of sample temperatures.
-        /// </summary>
-        public double SampleTemperatureDrift
+        private double GetSampleTemperatureDrift()
         {
-            get
-            {
-                if (sampleTemperatureOrigin == SampleTemperatureOrigin.EstimatedFromAir)
-                    return AirTemperatureDrift;
-                return EvaluateSpan(sTemperatureValues);
-            }
+            if (sampleTemperatureOrigin == SampleTemperatureOrigin.EstimatedFromAir)
+                return AirTemperatureDrift;
+            return EvaluateSpan(sTemperatureValues);
         }
 
-        /// <summary>
-        /// Gets the relative humidity.
-        /// </summary>
-        public double RelativeHumidity { get { return EvaluateMean(humiditieValues, referenceHumidity); } }
-
-        /// <summary>
-        /// Gets the span of relative humidity.
-        /// </summary>
-        public double RelativeHumidityDrift { get { return EvaluateSpan(humiditieValues); } }
-
-        /// <summary>
-        /// Gets the barometric pressure.
-        /// </summary>
-        public double BarometricPressure { get { return EvaluateMean(pressureValues, referencePressure); } }
-
-        /// <summary>
-        /// Gets the span of pressures.
-        /// </summary>
-        public double BarometricPressureDrift { get { return EvaluateSpan(pressureValues); } }
-
-        /// <summary>
-        /// Gets the air temperature for the X-axis interferometer.
-        /// </summary>
-        public double XTemperature { get { return EvaluateMean(xTemperatureValues, referenceTemperature); } }
-
-        /// <summary>
-        /// Gets the air temperature for the Y-axis interferometer.
-        /// </summary>
-        public double YTemperature { get { return EvaluateMean(yTemperatureValues, referenceTemperature); } }
-
-        /// <summary>
-        /// Gets the air temperature for the Z-axis interferometer.
-        /// </summary>
-        public double ZTemperature { get { return EvaluateMean(zTemperatureValues, referenceTemperature); } }
-        #endregion
-
-        #region Private stuff
-
-        /// <summary>
-        /// Transforms the <c>DataStatus</c> enumeration to a user friedly text.
-        /// </summary>
-        /// <returns>A verbatim description.</returns>
         private string StatusDescription()
         {
             switch (AirSampleSource)
@@ -155,9 +71,6 @@ namespace Bev.IO.NmmReader
             }
         }
 
-        /// <summary>
-        /// Determines the source of the data for the standard and the sample temperature separately.
-        /// </summary>
         private void AnalyzeSensorOrigin()
         {
             if (NumberOfAirSamples == 0)
@@ -175,19 +88,14 @@ namespace Bev.IO.NmmReader
             SubsumizeStatus();
         }
 
-        /// <summary>
-        /// Determines a synopsis of the source status.
-        /// </summary>
         private void SubsumizeStatus()
         {
             AirSampleSource = EnvironmentDataStatus.Unknown;
-
             if (NumberOfAirSamples == 0)
             {
                 AirSampleSource = EnvironmentDataStatus.NoDataProvided;
                 return;
             }
-
             if (airTemperatureOrigin == AirTemperatureOrigin.MeasuredBySensor)
             {
                 switch (sampleTemperatureOrigin)
@@ -202,7 +110,6 @@ namespace Bev.IO.NmmReader
                         return;
                 }
             }
-
             if (airTemperatureOrigin == AirTemperatureOrigin.DfaultValues && sampleTemperatureOrigin == SampleTemperatureOrigin.DefaultValues)
             {
                 AirSampleSource = EnvironmentDataStatus.DefaultValues;
@@ -210,27 +117,22 @@ namespace Bev.IO.NmmReader
             }
         }
 
-        /// <summary>
-        /// Loads the sensor data from the file.
-        /// </summary>
-        /// <param name="fileName">The file name.</param>
         private void LoadSensorData(string fileName)
         {
-            if (!File.Exists(fileName))
+            try
             {
-                return;
+                string line;
+                StreamReader hFile = File.OpenText(fileName);
+                while ((line = hFile.ReadLine()) != null)
+                    ParseDataLine(line);
+                hFile.Close();
             }
-            string line;
-            StreamReader hFile = File.OpenText(fileName);
-            while ((line = hFile.ReadLine()) != null)
-                ParseDataLine(line);
-            if (hFile != null) hFile.Close();
+            catch (Exception)
+            {
+                // file error, ignore
+            }
         }
 
-        /// <summary>
-        /// Parses a line of text for sensor data and update lists on success.
-        /// </summary>
-        /// <param name="line">The line of text to be parsed.</param>
         private void ParseDataLine(string line)
         {
             if (string.IsNullOrWhiteSpace(line)) return;
@@ -289,33 +191,20 @@ namespace Bev.IO.NmmReader
             }
         }
 
-        /// <summary>
-        /// Evaluates the mean value of the given data list.
-        /// </summary>
-        /// <returns>The mean or the default value</returns>
-        /// <param name="values">The data list.</param>
-        /// <param name="defaultValue">The default value if the data list is empty.</param>
         private double EvaluateMean(List<double> values, double defaultValue)
         {
-            if (values.Count == 0) return defaultValue;
+            if (values.Count == 0)
+                return defaultValue;
             return values.Average();
         }
 
-        /// <summary>
-        /// Evaluates the span of all values in the given data list.
-        /// </summary>
-        /// <returns>The span.</returns>
-        /// <param name="values">The data list.</param>
         private double EvaluateSpan(List<double> values)
         {
-            if (values.Count <= 1) return 0.0;
+            if (values.Count <= 1)
+                return 0.0;
             return values.Max() - values.Min();
         }
 
-        /// <summary>
-        /// Estimates the span of three air temperature values. Measure for the air temperature homogeniety.
-        /// </summary>
-        /// <returns>The homogeneity.</returns>
         private double EstimateAirTemperatureHomogeneity()
         {
             double t1 = XTemperature;
@@ -330,10 +219,6 @@ namespace Bev.IO.NmmReader
             return tMax - tMin;
         }
 
-        /// <summary>
-        /// Estimates the mean air temperature drift as the mean of the three individual drifts.
-        /// </summary>
-        /// <returns>The air temperature drift.</returns>
         private double EstimateAirTemperatureDrift()
         {
             return (EvaluateSpan(xTemperatureValues) + EvaluateSpan(yTemperatureValues) + EvaluateSpan(zTemperatureValues)) / 3.0;
@@ -349,16 +234,9 @@ namespace Bev.IO.NmmReader
         private readonly List<double> sTemperatureValues = new List<double>();
         private readonly List<double> humiditieValues = new List<double>();
         private readonly List<double> pressureValues = new List<double>();
-        
-        #endregion
 
     }
 
-    #region Enums
-
-    /// <summary>
-    /// Local data source types for air parameters.
-    /// </summary>
     internal enum AirTemperatureOrigin
     {
         Unknown,
@@ -366,9 +244,6 @@ namespace Bev.IO.NmmReader
         DfaultValues
     }
 
-    /// <summary>
-    /// Local data source types for sample temperature parameter.
-    /// </summary>
     internal enum SampleTemperatureOrigin
     {
         Unknown,
@@ -377,5 +252,4 @@ namespace Bev.IO.NmmReader
         DefaultValues
     }
 
-    #endregion
 }
