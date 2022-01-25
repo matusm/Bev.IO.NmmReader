@@ -16,20 +16,8 @@
         public string InstrumentSerial { get; private set; }
         public string InstrumentVersion { get; private set; }
         public string EnvironmentMode { get; private set; }
-        public string InstrumentIdentifier 
-        { 
-            get 
-            { 
-                return string.Format("{0} {1} {2} {3}", InstrumentManufacturer, InstrumentModel, InstrumentVersion, InstrumentSerial);
-            } 
-        }
-        public string Institute
-        {
-            get 
-            {
-                return string.Format("{0} ({1})", OrganisationLong, Organisation);
-            }
-        }
+        public string InstrumentIdentifier => $"{InstrumentManufacturer} {InstrumentModel} {InstrumentVersion} {InstrumentSerial}";
+        public string Institute => $"{OrganisationLong} ({Organisation})";
 
         public void LoadCharacteristicFromFile(string fileName)
         {
