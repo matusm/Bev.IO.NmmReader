@@ -11,7 +11,7 @@
 // 3.) after all data is consumed, call Close();
 //
 // 
-// Author: Michael Matus, 2019
+// Author: Michael Matus, 2019-2022
 //
 //****************************************************************************************
 
@@ -25,8 +25,6 @@ namespace Bev.IO.NmmReader.scan_mode
     {
         static readonly NumberFormatInfo numFormat = new NumberFormatInfo() { NumberDecimalSeparator = "." };
 
-        #region Ctor
-
         public NmmDatFileParser(NmmFileName fileName)
         {
             // try to open file(s)
@@ -34,16 +32,8 @@ namespace Bev.IO.NmmReader.scan_mode
             hBackwardFile = OpenFileForLoading(fileName.GetDatFileNameForScanIndex(ScanDirection.Backward));
         }
 
-        #endregion
-
-        #region Properties
-
-        public bool BackwardFilePresent { get { return hBackwardFile != null; } }
-        public bool ForwardFilePresent { get { return hForwardFile != null; } }
-
-        #endregion
-
-        #region Methods
+        public bool BackwardFilePresent => hBackwardFile != null;
+        public bool ForwardFilePresent => hForwardFile != null;
 
         public void Close()
         {
@@ -60,10 +50,6 @@ namespace Bev.IO.NmmReader.scan_mode
         {
             return ExtractNextDataLine(hBackwardFile);
         }
-
-        #endregion
-
-        #region Private stuff
 
         private StreamReader OpenFileForLoading(string fileName)
         {
@@ -96,9 +82,7 @@ namespace Bev.IO.NmmReader.scan_mode
             return dataLine;
         }
 
-        // fields
         private readonly StreamReader hForwardFile;
         private readonly StreamReader hBackwardFile;
-        #endregion
     }
 }

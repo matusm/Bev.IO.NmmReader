@@ -27,8 +27,6 @@ namespace Bev.IO.NmmReader.scan_mode
     public class NmmScanData
     {
 
-        #region Ctor
-
         public NmmScanData(NmmFileName fileNameObject)
         {
             MetaData = new ScanMetaData();
@@ -59,23 +57,15 @@ namespace Bev.IO.NmmReader.scan_mode
             LoadTopographyData();
             // contrary to similar classes of this library, the dat-files are not closed implicitely
             nmmDat.Close();
-            // populate MetaData with absolute center coordinates
-            PopulateFieldCenter();
+            // populate MetaData with absolute origin and center coordinates
+            PopulateFieldOriginAndCenter();
             HeydemannCorrectionApplied = false;
             HeydemannCorrectionSpan = 0.0;
         }
 
-        #endregion
-
-        #region Properties
-
         public ScanMetaData MetaData { get; private set; }
         public bool HeydemannCorrectionApplied { get; private set; }
         public double HeydemannCorrectionSpan { get; private set; }
-
-        #endregion
-
-        #region Methods
 
         // this is the main method: returns the profile for a given symbol and index 
         public double[] ExtractProfile(string columnSymbol, int profileIndex, TopographyProcessType type)
@@ -151,12 +141,7 @@ namespace Bev.IO.NmmReader.scan_mode
                     HeydemannCorrectionSpan = Math.Max(HeydemannCorrectionSpan, heydemann.CorrectionSpan);
                 }
             }
-
         }
-
-        #endregion
-
-        #region Private stuff
 
         private void LoadTopographyData()
         {
@@ -207,7 +192,7 @@ namespace Bev.IO.NmmReader.scan_mode
             }
         }
 
-        private void PopulateFieldCenter()
+        private void PopulateFieldOriginAndCenter()
         {
             double centerX = double.NaN;
             double centerY = double.NaN;
@@ -239,7 +224,6 @@ namespace Bev.IO.NmmReader.scan_mode
         // fields
         private readonly NmmDatFileParser nmmDat;
         private readonly TopographyData topographyData;
-        #endregion
 
     }
 }
