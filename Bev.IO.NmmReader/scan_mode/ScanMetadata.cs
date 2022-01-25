@@ -4,13 +4,8 @@ using System.Text;
 
 namespace Bev.IO.NmmReader.scan_mode
 {
-    /// <summary>
-    /// A container class for metadata of a NMM scan file collection.
-    /// </summary>
     public class ScanMetaData
     {
-
-        #region Properties
         // geometry parameters
         public long DataMask { get; private set; }
         public int NumberOfProfiles { get; private set; }
@@ -74,14 +69,7 @@ namespace Bev.IO.NmmReader.scan_mode
         public string InstrumentVersion { get; private set; }
         public string EnvironmentMode { get; private set; }
         public string Institute { get; private set; }
-        #endregion
 
-        #region Methods
-
-        /// <summary>
-        /// Add relevant properties from the files read by the respective classes.
-        /// </summary>
-        /// <param name="obj">The object of respective file reader.</param>
         public void AddDataFrom(object obj)
         {
             if (obj is NmmEnvironmentData)
@@ -148,10 +136,6 @@ namespace Bev.IO.NmmReader.scan_mode
             }
             return sb.ToString();
         }
-
-        #endregion
-
-        #region Private stuff
 
         private void FillFileData(NmmFileName obj)
         {
@@ -242,8 +226,5 @@ namespace Bev.IO.NmmReader.scan_mode
             NumberOfAirSamples = obj.NumberOfAirSamples;
             AirSampleSourceText = obj.AirSampleSourceText;
         }
-
-        #endregion
-
     }
 }
