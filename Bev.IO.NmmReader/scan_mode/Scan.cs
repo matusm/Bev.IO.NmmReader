@@ -7,8 +7,6 @@ namespace Bev.IO.NmmReader.scan_mode
     /// </summary>
     public static class Scan
     {
-    
-        #region Public methods
 
         /// <summary>
         /// Interpretes the provided data mask for the number of columns in the data file.
@@ -111,8 +109,6 @@ namespace Bev.IO.NmmReader.scan_mode
             // return as array
             return columnsPredicates.ToArray();
         }
-
-        #endregion
 
     }
 }

@@ -21,10 +21,9 @@
 //
 // The whole calculation is performed in the constructor only.
 // 
-// Author: Michael Matus, 2020
+// Author: Michael Matus, 2020-2022
 //
 //****************************************************************************************
-
 
 using System;
 using MathNet.Numerics.LinearAlgebra;
@@ -36,7 +35,6 @@ namespace Bev.IO.NmmReader.scan_mode
     {
         private const double lambda2 = 316.409754e-9; // Lambda/2 in m, for air and NMM laser rack
 
-        #region Properties
         public CorrectionStatus Status { get; private set; } = CorrectionStatus.Unknown;
         public double CorrectionSpan { get; private set; } = 0.0;
         public double[] CorrectedData { get; private set; }
@@ -47,16 +45,12 @@ namespace Bev.IO.NmmReader.scan_mode
         public double Phase { get; private set; } = 0.0;
         public double Amplitude { get; private set; } = 1.0;
         public double AmplitudeRelation { get; private set; } = 1.0;
-        #endregion
 
-        #region Ctor
         public Heydemann(double[] rawData, double[] sinValues, double[] cosValues)
         {
             PerformCorrection(rawData, sinValues, cosValues);
         }
-        #endregion
 
-        #region Private stuff
         private void PerformCorrection(double[] rawData, double[] sinValues, double[] cosValues)
         {
             Status = CorrectionStatus.Uncorrected;
@@ -155,7 +149,6 @@ namespace Bev.IO.NmmReader.scan_mode
             if (deviation < -300e-9) deviation += lambda2;
             return deviation;
         }
-        #endregion
     }
 
     public enum CorrectionStatus

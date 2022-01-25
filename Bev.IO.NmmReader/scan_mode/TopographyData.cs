@@ -4,7 +4,8 @@
 //
 // Usage:
 // 1.) create an instance of the ScanMetaData class of the respective data files
-// 2.) create an instance of TopographyData (this class) with the ScanMetaData object as parameter
+// 2.) create an instance of TopographyData (this class) with the
+//     ScanMetaData object as parameter
 // 3.) populate this object with data line by line using InsertDataLineAt()
 // 4.) now profiles can be extracted in any order by ExtractProfile(). 
 //     The profiles are identified by their numerical index
@@ -13,10 +14,9 @@
 // Profile index 0 is interpreted as returning all profiles at once by ExtractProfile().
 // Hence profiles are enumerated starting at 1
 // 
-// Author: Michael Matus, 2019
+// Author: Michael Matus, 2019-2022
 //
 //****************************************************************************************
-
 
 using System;
 using System.Linq;
@@ -25,8 +25,6 @@ namespace Bev.IO.NmmReader.scan_mode
 {
     public class TopographyData
     {
-
-        #region Ctor
         public TopographyData(ScanMetaData scanMetaData)
         {
             this.scanMetaData = scanMetaData;
@@ -56,17 +54,11 @@ namespace Bev.IO.NmmReader.scan_mode
                     break;
             }
         }
-        #endregion
 
-        #region Properties
-        // the size of the two matrices
         public int NumberOfProfiles { get; private set; }
         public int NumberTotalPoints { get; private set; }
         public int NumberOfColumns { get; private set; }
         public int NumberOfPointsPerProfile { get; private set; }
-        #endregion
-
-        #region Methods
 
         // this is used for Heydemann correction measures
         // the whole field (= all profiles) must be provided at once
@@ -132,10 +124,6 @@ namespace Bev.IO.NmmReader.scan_mode
                 return ProcessTwoProfiles(AllProfiles(column, ScanDirection.Forward), AllProfiles(column, ScanDirection.Backward), type);
             return ProcessTwoProfiles(SingleProfile(column, profileIndex, ScanDirection.Forward), SingleProfile(column, profileIndex, ScanDirection.Backward), type);
         }
-
-        #endregion
-
-        #region Private stuff
 
         private double[] ProcessTwoProfiles(double[] fwdProfile, double[] bwdProfile, TopographyProcessType type)
         {
@@ -257,6 +245,5 @@ namespace Bev.IO.NmmReader.scan_mode
         private readonly ScanMetaData scanMetaData;
         private readonly int columnNumberOfXYvec;
 
-        #endregion
     }
 }

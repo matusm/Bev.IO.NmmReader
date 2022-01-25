@@ -3,7 +3,6 @@ using System.IO;
 using System.Collections.Generic;
 using System.Linq;
 using System.Globalization;
-using System.Text;
 
 namespace Bev.IO.NmmReader.scan_mode
 {
@@ -13,8 +12,6 @@ namespace Bev.IO.NmmReader.scan_mode
     /// </summary>
     public class NmmIndFileParser
     {
-        #region Ctor
-
         /// <summary>
         /// Initializes a new instance of the <see cref="T:Bev.IO.NmmReader.NmmIndFileParser"/> class.
         /// </summary>
@@ -35,74 +32,22 @@ namespace Bev.IO.NmmReader.scan_mode
             // Creation date and duration
             EvaluateMeasurementTime();
         }
-        #endregion
 
-        #region Properties
 
-        /// <summary>
-        /// Gets the scan status (backward, forward, ...)
-        /// </summary>
         public ScanDirectionStatus ScanStatus { get; private set; }
-
-        /// <summary>
-        /// Gets the number of profiles of the scan as determined by the index files.
-        /// </summary>
-        public int NumberOfProfiles { get { return ForwardProfileLengths.Count(); } }
-
-        /// <summary>
-        /// Gets the number of spurious profiles in the backward scan (peculiar NMM file error).
-        /// </summary>
+        public int NumberOfProfiles => ForwardProfileLengths.Count();
         public int SpuriousProfiles { get; private set; }
-
-        /// <summary>
-        /// Gets the estimated nominal number of data points.
-        /// </summary>
         public int NominalDataPoints { get; private set; }
-
-        /// <summary>
-        /// Gets the maximum data points glitch.
-        /// </summary>
         public int DataPointsGlitch { get; private set; }
-
-        /// <summary>
-        /// Gets the data mask for the scan.
-        /// </summary>
         public long DataMask { get; private set; }
-
-        /// <summary>
-        /// Gets the creation (or start) date for the scan.
-        /// </summary>
         public DateTime CreationDate { get; private set; }
-
-        /// <summary>
-        /// Gets the duration for the scan.
-        /// </summary>
         public TimeSpan ScanDuration { get; private set; }
-
-        /// <summary>
-        /// Gets the array of missing points for the forward profils.
-        /// </summary>
         public int[] ProfilsDefectsForward { get; private set; }
-
-        /// <summary>
-        /// Gets the array of missing points for the backward profils.
-        /// </summary>
         public int[] ProfilsDefectsBackward { get; private set; }
-        
         public List<int> ForwardProfileLengths { get; private set; } = new List<int>();
-
         public List<int> BackwardProfileLengths { get; private set; } = new List<int>();
+        public int SpuriousDataLines { get; private set; } // the number of sporious data lines in the backward scan file
 
-        // the number of sporious data lines in the backward scan file
-        public int SpuriousDataLines { get; private set; }
-
-        #endregion
-
-        #region Private stuff
-
-        /// <summary>
-        /// Calculates nominal number of data points (and maximum glitch).
-        /// </summary>
         private void DetermineNominalDataPointNumber()
         {
             NominalDataPoints = 0;
@@ -119,9 +64,6 @@ namespace Bev.IO.NmmReader.scan_mode
             }
         }
 
-        /// <summary>
-        /// Extract creation date and scan duration.
-        /// </summary>
         private void EvaluateMeasurementTime()
         {
             if (forwardTimeStamps.Count == 0)
@@ -134,10 +76,6 @@ namespace Bev.IO.NmmReader.scan_mode
             ScanDuration = forwardTimeStamps.Last() - CreationDate;
         }
 
-        /// <summary>
-        /// List the profiles which are too short (according to a nominal profile length).
-        /// </summary>
-        /// <param name="nominalProfileLength">Nominal profile length.</param>
         private void FindShortProfiles(int nominalProfileLength)
         {
             if (ForwardProfileLengths.Count() > 0)
@@ -158,11 +96,6 @@ namespace Bev.IO.NmmReader.scan_mode
             }
         }
 
-        /// <summary>
-        /// Determines the direction status (StatusFromIndex) from 
-        /// the number of profiles for forward and backward scans.
-        /// Also justifies backward profile number if needed.
-        /// </summary>
         private void AnalyzeDirectionStatus()
         {
             ScanStatus = ScanDirectionStatus.Unknown;
@@ -202,11 +135,6 @@ namespace Bev.IO.NmmReader.scan_mode
             }
         }
 
-        /// <summary>
-        /// Loads data from an index file.
-        /// </summary>
-        /// <param name="fileName">The full file name.</param>
-        /// <param name="direction">The scan direction.</param>
         private void LoadIndexData(string fileName, ScanDirection direction)
         {
             if (!File.Exists(fileName))
@@ -225,11 +153,6 @@ namespace Bev.IO.NmmReader.scan_mode
             if (hFile != null) hFile.Close();
         }
 
-        /// <summary>
-        /// Parses a line of text for index data and add them on success.
-        /// </summary>
-        /// <param name="line">The line of text to be parsed.</param>
-        /// <param name="direction">The scan direction.</param>
         private void ParseDataLine(string line, ScanDirection direction)
         {
             if (string.IsNullOrWhiteSpace(line)) return;
@@ -260,24 +183,24 @@ namespace Bev.IO.NmmReader.scan_mode
                 timeStamp = DateTime.ParseExact(token, "dd-MMM-yyyy HH:mm:ss", new CultureInfo("de-DE")); // 01-Jan-2014 13:15:10
                 return timeStamp;
             }
-            catch (FormatException e) { } // fall through
+            catch (FormatException) { } // fall through
             try
             {
                 timeStamp = DateTime.ParseExact(token, "dd-MMM-yyyy HH:mm:ss", new CultureInfo("de-AT")); // 01-Jän-2014 13:15:10
                 return timeStamp;
             }
-            catch (FormatException e) { } // fall through
+            catch (FormatException) { } // fall through
             try
             {
                 timeStamp = DateTime.ParseExact(token, "dd-MMM-yyyy HH:mm:ss", CultureInfo.InvariantCulture ); // fallback
                 return timeStamp;
             }
-            catch (FormatException e) { } // fall through
+            catch (FormatException) { } // fall through
             return DateTime.UtcNow;
         }
 
         private readonly List<DateTime> forwardTimeStamps = new List<DateTime>();
         private readonly List<DateTime> backwardTimeStamps = new List<DateTime>();
-        #endregion
+
     }
 }

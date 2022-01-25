@@ -15,7 +15,7 @@
 // 4.) Meta data can be extracted from the MetaData property. 
 // 
 // 
-// Author: Michael Matus, 2019
+// Author: Michael Matus, 2019-2022
 //
 //****************************************************************************************
 
