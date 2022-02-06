@@ -30,10 +30,10 @@ namespace Bev.IO.NmmReader
         public double AirTemparatureGradient => EstimateAirTemperatureHomogeneity();
         public double SampleTemperature => GetSampleTemperature();
         public double SampleTemperatureDrift => GetSampleTemperatureDrift();
-        public double RelativeHumidity => EvaluateMean(humiditieValues, referenceHumidity);
-        public double RelativeHumidityDrift => EvaluateSpan(humiditieValues);
+        public double RelativeHumidity => EvaluateMean(humidityValues, referenceHumidity);
+        public double RelativeHumidityDrift => EvaluateRange(humidityValues);
         public double BarometricPressure => EvaluateMean(pressureValues, referencePressure);
-        public double BarometricPressureDrift => EvaluateSpan(pressureValues);
+        public double BarometricPressureDrift => EvaluateRange(pressureValues);
         public double XTemperature => EvaluateMean(xTemperatureValues, referenceTemperature);
         public double YTemperature => EvaluateMean(yTemperatureValues, referenceTemperature);
         public double ZTemperature => EvaluateMean(zTemperatureValues, referenceTemperature);
@@ -49,7 +49,7 @@ namespace Bev.IO.NmmReader
         {
             if (sampleTemperatureOrigin == SampleTemperatureOrigin.EstimatedFromAir)
                 return AirTemperatureDrift;
-            return EvaluateSpan(sTemperatureValues);
+            return EvaluateRange(sTemperatureValues);
         }
 
         private string StatusDescription()
@@ -147,7 +147,7 @@ namespace Bev.IO.NmmReader
                         yTemperatureValues.Add(double.Parse(tokens[1], numFormat));
                         zTemperatureValues.Add(double.Parse(tokens[2], numFormat));
                         pressureValues.Add(double.Parse(tokens[3], numFormat));
-                        humiditieValues.Add(double.Parse(tokens[4], numFormat));
+                        humidityValues.Add(double.Parse(tokens[4], numFormat));
                         airTemperatureOrigin = AirTemperatureOrigin.MeasuredBySensor;
                         sampleTemperatureOrigin = SampleTemperatureOrigin.EstimatedFromAir;
                         break;
@@ -156,7 +156,7 @@ namespace Bev.IO.NmmReader
                         yTemperatureValues.Add(double.Parse(tokens[1], numFormat));
                         zTemperatureValues.Add(double.Parse(tokens[2], numFormat));
                         pressureValues.Add(double.Parse(tokens[3], numFormat));
-                        humiditieValues.Add(double.Parse(tokens[4], numFormat));
+                        humidityValues.Add(double.Parse(tokens[4], numFormat));
                         sTemperatureValues.Add(double.Parse(tokens[5], numFormat));
                         airTemperatureOrigin = AirTemperatureOrigin.MeasuredBySensor;
                         sampleTemperatureOrigin = SampleTemperatureOrigin.MeasuredBySensor;
@@ -166,7 +166,7 @@ namespace Bev.IO.NmmReader
                         yTemperatureValues.Add(double.Parse(tokens[4], numFormat));
                         zTemperatureValues.Add(double.Parse(tokens[5], numFormat));
                         pressureValues.Add(double.Parse(tokens[6], numFormat));
-                        humiditieValues.Add(double.Parse(tokens[7], numFormat));
+                        humidityValues.Add(double.Parse(tokens[7], numFormat));
                         airTemperatureOrigin = AirTemperatureOrigin.MeasuredBySensor;
                         sampleTemperatureOrigin = SampleTemperatureOrigin.EstimatedFromAir;
                         break;
@@ -175,7 +175,7 @@ namespace Bev.IO.NmmReader
                         yTemperatureValues.Add(double.Parse(tokens[4], numFormat));
                         zTemperatureValues.Add(double.Parse(tokens[5], numFormat));
                         pressureValues.Add(double.Parse(tokens[6], numFormat));
-                        humiditieValues.Add(double.Parse(tokens[7], numFormat));
+                        humidityValues.Add(double.Parse(tokens[7], numFormat));
                         sTemperatureValues.Add(double.Parse(tokens[8], numFormat));
                         airTemperatureOrigin = AirTemperatureOrigin.MeasuredBySensor;
                         sampleTemperatureOrigin = SampleTemperatureOrigin.MeasuredBySensor;
@@ -198,7 +198,7 @@ namespace Bev.IO.NmmReader
             return values.Average();
         }
 
-        private double EvaluateSpan(List<double> values)
+        private double EvaluateRange(List<double> values)
         {
             if (values.Count <= 1)
                 return 0.0;
@@ -221,7 +221,7 @@ namespace Bev.IO.NmmReader
 
         private double EstimateAirTemperatureDrift()
         {
-            return (EvaluateSpan(xTemperatureValues) + EvaluateSpan(yTemperatureValues) + EvaluateSpan(zTemperatureValues)) / 3.0;
+            return (EvaluateRange(xTemperatureValues) + EvaluateRange(yTemperatureValues) + EvaluateRange(zTemperatureValues)) / 3.0;
         }
 
         // fields for housekeeping purposes
@@ -232,7 +232,7 @@ namespace Bev.IO.NmmReader
         private readonly List<double> yTemperatureValues = new List<double>();
         private readonly List<double> zTemperatureValues = new List<double>();
         private readonly List<double> sTemperatureValues = new List<double>();
-        private readonly List<double> humiditieValues = new List<double>();
+        private readonly List<double> humidityValues = new List<double>();
         private readonly List<double> pressureValues = new List<double>();
 
     }
