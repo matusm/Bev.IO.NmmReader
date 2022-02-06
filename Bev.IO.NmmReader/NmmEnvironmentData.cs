@@ -24,7 +24,7 @@ namespace Bev.IO.NmmReader
 
         public string AirSampleSourceText => StatusDescription();
         public EnvironmentDataStatus AirSampleSource { get; private set; }
-        public int NumberOfAirSamples => xTemperatureValues.Count();
+        public int NumberOfAirSamples => xTemperatureValues.Count;
         public double AirTemperature => (XTemperature + YTemperature + ZTemperature) / 3.0;
         public double AirTemperatureDrift => EstimateAirTemperatureDrift();
         public double AirTemparatureGradient => EstimateAirTemperatureHomogeneity();
