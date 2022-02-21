@@ -17,8 +17,28 @@ namespace Bev.IO.NmmReader
         {
             airTemperatureOrigin = AirTemperatureOrigin.Unknown;
             sampleTemperatureOrigin = SampleTemperatureOrigin.Unknown;
+            fileStructure = FileStructure.NoFile;
+            // the following check on the file origins is a nightmare
             LoadSensorData(fileName.GetPosFileNameForScanIndex(ScanDirection.Forward));
+            int numberOfForwardSamples = xTemperatureValues.Count;
+            if (numberOfForwardSamples > 0)
+                fileStructure = FileStructure.FwdFileOnly;
             LoadSensorData(fileName.GetPosFileNameForScanIndex(ScanDirection.Backward));
+            if (xTemperatureValues.Count > numberOfForwardSamples)
+            {
+                if(fileStructure==FileStructure.FwdFileOnly)
+                {
+                    fileStructure = FileStructure.FwdBwdFile;
+                    if(xTemperatureValues.Count == 2* numberOfForwardSamples)
+                    {
+                        fileStructure = FileStructure.ValidFwdBwdFile;
+                    }
+                }
+                else
+                {
+                    fileStructure = FileStructure.BwdFileOnly;
+                }
+            }
             AnalyzeSensorOrigin();
         }
 
@@ -26,10 +46,10 @@ namespace Bev.IO.NmmReader
         public EnvironmentDataStatus AirSampleSource { get; private set; }
         public int NumberOfAirSamples => xTemperatureValues.Count;
         public double AirTemperature => (XTemperature + YTemperature + ZTemperature) / 3.0;
-        public double AirTemperatureDrift => EstimateAirTemperatureDrift();
+        public double AirTemperatureDrift => EstimateAirTemperatureRange();
         public double AirTemparatureGradient => EstimateAirTemperatureHomogeneity();
         public double SampleTemperature => GetSampleTemperature();
-        public double SampleTemperatureDrift => GetSampleTemperatureDrift();
+        public double SampleTemperatureDrift => GetSampleTemperatureRange();
         public double RelativeHumidity => EvaluateMean(humidityValues, referenceHumidity);
         public double RelativeHumidityDrift => EvaluateRange(humidityValues);
         public double BarometricPressure => EvaluateMean(pressureValues, referencePressure);
@@ -45,7 +65,7 @@ namespace Bev.IO.NmmReader
             return EvaluateMean(sTemperatureValues, referenceTemperature);
         }
 
-        private double GetSampleTemperatureDrift()
+        private double GetSampleTemperatureRange()
         {
             if (sampleTemperatureOrigin == SampleTemperatureOrigin.EstimatedFromAir)
                 return AirTemperatureDrift;
@@ -219,14 +239,37 @@ namespace Bev.IO.NmmReader
             return tMax - tMin;
         }
 
-        private double EstimateAirTemperatureDrift()
+        private double EstimateAirTemperatureRange()
         {
             return (EvaluateRange(xTemperatureValues) + EvaluateRange(yTemperatureValues) + EvaluateRange(zTemperatureValues)) / 3.0;
+        }
+
+        private double[] UnscrambleValues(List<double> scrambeldValues)
+        {
+            double[] temp = scrambeldValues.ToArray();
+            if (fileStructure != FileStructure.ValidFwdBwdFile) // TODO what happens with NoFile? FwdBwdFile?
+            {
+                return temp;
+            }
+            double[] series = new double[temp.Length];
+            for (int i = 0; i < temp.Length; i++)
+            {
+                if (i % 2 == 0)
+                {
+                    series[i] = temp[i / 2];
+                }
+                else
+                {
+                    series[i] = temp[(temp.Length+i) / 2];
+                }
+            }
+            return series;
         }
 
         // fields for housekeeping purposes
         private AirTemperatureOrigin airTemperatureOrigin;
         private SampleTemperatureOrigin sampleTemperatureOrigin;
+        private FileStructure fileStructure;
         // actual data as provided by file(s)
         private readonly List<double> xTemperatureValues = new List<double>();
         private readonly List<double> yTemperatureValues = new List<double>();
@@ -235,6 +278,15 @@ namespace Bev.IO.NmmReader
         private readonly List<double> humidityValues = new List<double>();
         private readonly List<double> pressureValues = new List<double>();
 
+    }
+
+    internal enum FileStructure
+    {
+        NoFile,             // no *.pos file was read (or data found).
+        FwdFileOnly,        // only a single *.pos file was read. From a forward scan or 3D-measurement. 
+        BwdFileOnly,        // only a single *b.pos file was read. From a backward scan. Unusual.
+        FwdBwdFile,         // both files from a scan read, but not of equal size.
+        ValidFwdBwdFile     // both files from a scan read, of equal size and thus valid.
     }
 
     internal enum AirTemperatureOrigin
