@@ -18,7 +18,7 @@ namespace Bev.IO.NmmReader
             airTemperatureOrigin = AirTemperatureOrigin.Unknown;
             sampleTemperatureOrigin = SampleTemperatureOrigin.Unknown;
             fileStructure = FileStructure.NoFile;
-            // the following check on the file origins is a nightmare
+            // the following analysis on the file structure is a nightmare
             LoadSensorData(fileName.GetPosFileNameForScanIndex(ScanDirection.Forward));
             int numberOfForwardSamples = xTemperatureValues.Count;
             if (numberOfForwardSamples > 0)
@@ -48,94 +48,19 @@ namespace Bev.IO.NmmReader
         public double AirTemperature => (XTemperature + YTemperature + ZTemperature) / 3.0;
         public double AirTemperatureDrift => EstimateAirTemperatureRange();
         public double AirTemparatureGradient => EstimateAirTemperatureHomogeneity();
+        public double[] AirTemperatureSeries => GetAirTemperatureSeries();
         public double SampleTemperature => GetSampleTemperature();
         public double SampleTemperatureDrift => GetSampleTemperatureRange();
+        public double[] SampleTemperatureSeries => UnscrambleValues(sTemperatureValues);
         public double RelativeHumidity => EvaluateMean(humidityValues, referenceHumidity);
         public double RelativeHumidityDrift => EvaluateRange(humidityValues);
+        public double[] RelativeHumiditySeries => UnscrambleValues(humidityValues);
         public double BarometricPressure => EvaluateMean(pressureValues, referencePressure);
         public double BarometricPressureDrift => EvaluateRange(pressureValues);
+        public double[] BarometricPressureSeries => UnscrambleValues(pressureValues);
         public double XTemperature => EvaluateMean(xTemperatureValues, referenceTemperature);
         public double YTemperature => EvaluateMean(yTemperatureValues, referenceTemperature);
         public double ZTemperature => EvaluateMean(zTemperatureValues, referenceTemperature);
-
-        private double GetSampleTemperature()
-        {
-            if (sampleTemperatureOrigin == SampleTemperatureOrigin.EstimatedFromAir)
-                return AirTemperature;
-            return EvaluateMean(sTemperatureValues, referenceTemperature);
-        }
-
-        private double GetSampleTemperatureRange()
-        {
-            if (sampleTemperatureOrigin == SampleTemperatureOrigin.EstimatedFromAir)
-                return AirTemperatureDrift;
-            return EvaluateRange(sTemperatureValues);
-        }
-
-        private string StatusDescription()
-        {
-            switch (AirSampleSource)
-            {
-                case EnvironmentDataStatus.Unknown:
-                    return "This should not happen!";
-                case EnvironmentDataStatus.NoDataProvided:
-                    return "File(s) not found or invalid, using default values.";
-                case EnvironmentDataStatus.DefaultValues:
-                    return "File(s) contained default values only (Instrument malfunction).";
-                case EnvironmentDataStatus.MeasuredValues:
-                    return "All parameters (including sample temperature) recorded.";
-                case EnvironmentDataStatus.SampleEstimatedbyAir:
-                    return "Air parameters recorded, sample temperature estimated by air temperature.";
-                default:
-                    return "";
-            }
-        }
-
-        private void AnalyzeSensorOrigin()
-        {
-            if (NumberOfAirSamples == 0)
-            {
-                airTemperatureOrigin = AirTemperatureOrigin.DfaultValues;
-                sampleTemperatureOrigin = SampleTemperatureOrigin.DefaultValues;
-            }
-            else
-            {
-                if (AirTemperature == 20.0 && AirTemperatureDrift == 0.0)
-                    airTemperatureOrigin = AirTemperatureOrigin.DfaultValues;
-                if (SampleTemperature == 20.0 && SampleTemperatureDrift == 0.0)
-                    sampleTemperatureOrigin = SampleTemperatureOrigin.DefaultValues;
-            }
-            SubsumizeStatus();
-        }
-
-        private void SubsumizeStatus()
-        {
-            AirSampleSource = EnvironmentDataStatus.Unknown;
-            if (NumberOfAirSamples == 0)
-            {
-                AirSampleSource = EnvironmentDataStatus.NoDataProvided;
-                return;
-            }
-            if (airTemperatureOrigin == AirTemperatureOrigin.MeasuredBySensor)
-            {
-                switch (sampleTemperatureOrigin)
-                {
-                    case SampleTemperatureOrigin.MeasuredBySensor:
-                        AirSampleSource = EnvironmentDataStatus.MeasuredValues;
-                        return;
-                    case SampleTemperatureOrigin.EstimatedFromAir:
-                        AirSampleSource = EnvironmentDataStatus.SampleEstimatedbyAir;
-                        return;
-                    default:
-                        return;
-                }
-            }
-            if (airTemperatureOrigin == AirTemperatureOrigin.DfaultValues && sampleTemperatureOrigin == SampleTemperatureOrigin.DefaultValues)
-            {
-                AirSampleSource = EnvironmentDataStatus.DefaultValues;
-                return;
-            }
-        }
 
         private void LoadSensorData(string fileName)
         {
@@ -211,6 +136,98 @@ namespace Bev.IO.NmmReader
             }
         }
 
+        private double GetSampleTemperature()
+        {
+            if (sampleTemperatureOrigin == SampleTemperatureOrigin.EstimatedFromAir)
+                return AirTemperature;
+            return EvaluateMean(sTemperatureValues, referenceTemperature);
+        }
+
+        private double GetSampleTemperatureRange()
+        {
+            if (sampleTemperatureOrigin == SampleTemperatureOrigin.EstimatedFromAir)
+                return AirTemperatureDrift;
+            return EvaluateRange(sTemperatureValues);
+        }
+
+        private double[] GetAirTemperatureSeries()
+        {
+            var tempX = UnscrambleValues(xTemperatureValues);
+            var tempY = UnscrambleValues(yTemperatureValues);
+            var tempZ = UnscrambleValues(zTemperatureValues);
+            double[] average = new double[tempX.Length];
+            for (int i = 0; i < average.Length; i++)
+            {
+                average[i] = (tempX[i] + tempY[i] + tempZ[i]) / 3.0;
+            }
+            return average;
+        }
+
+        private string StatusDescription()
+        {
+            switch (AirSampleSource)
+            {
+                case EnvironmentDataStatus.Unknown:
+                    return "This should not happen!";
+                case EnvironmentDataStatus.NoDataProvided:
+                    return "File(s) not found or invalid, using default values.";
+                case EnvironmentDataStatus.DefaultValues:
+                    return "File(s) contained default values only (Instrument malfunction).";
+                case EnvironmentDataStatus.MeasuredValues:
+                    return "All parameters (including sample temperature) recorded.";
+                case EnvironmentDataStatus.SampleEstimatedbyAir:
+                    return "Air parameters recorded, sample temperature estimated by air temperature.";
+                default:
+                    return "";
+            }
+        }
+
+        private void AnalyzeSensorOrigin()
+        {
+            if (NumberOfAirSamples == 0)
+            {
+                airTemperatureOrigin = AirTemperatureOrigin.DfaultValues;
+                sampleTemperatureOrigin = SampleTemperatureOrigin.DefaultValues;
+            }
+            else
+            {
+                if (AirTemperature == 20.0 && AirTemperatureDrift == 0.0)
+                    airTemperatureOrigin = AirTemperatureOrigin.DfaultValues;
+                if (SampleTemperature == 20.0 && SampleTemperatureDrift == 0.0)
+                    sampleTemperatureOrigin = SampleTemperatureOrigin.DefaultValues;
+            }
+            SubsumizeStatus();
+        }
+
+        private void SubsumizeStatus()
+        {
+            AirSampleSource = EnvironmentDataStatus.Unknown;
+            if (NumberOfAirSamples == 0)
+            {
+                AirSampleSource = EnvironmentDataStatus.NoDataProvided;
+                return;
+            }
+            if (airTemperatureOrigin == AirTemperatureOrigin.MeasuredBySensor)
+            {
+                switch (sampleTemperatureOrigin)
+                {
+                    case SampleTemperatureOrigin.MeasuredBySensor:
+                        AirSampleSource = EnvironmentDataStatus.MeasuredValues;
+                        return;
+                    case SampleTemperatureOrigin.EstimatedFromAir:
+                        AirSampleSource = EnvironmentDataStatus.SampleEstimatedbyAir;
+                        return;
+                    default:
+                        return;
+                }
+            }
+            if (airTemperatureOrigin == AirTemperatureOrigin.DfaultValues && sampleTemperatureOrigin == SampleTemperatureOrigin.DefaultValues)
+            {
+                AirSampleSource = EnvironmentDataStatus.DefaultValues;
+                return;
+            }
+        }
+
         private double EvaluateMean(List<double> values, double defaultValue)
         {
             if (values.Count == 0)
@@ -244,6 +261,8 @@ namespace Bev.IO.NmmReader
             return (EvaluateRange(xTemperatureValues) + EvaluateRange(yTemperatureValues) + EvaluateRange(zTemperatureValues)) / 3.0;
         }
 
+        // when using forward and backward scan data the order of sensor values is scrammbeled
+        // this function brings them in chronological order
         private double[] UnscrambleValues(List<double> scrambeldValues)
         {
             double[] temp = scrambeldValues.ToArray();
