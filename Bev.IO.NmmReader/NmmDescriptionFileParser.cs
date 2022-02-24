@@ -20,6 +20,7 @@ namespace Bev.IO.NmmReader
             switch (Procedure)
             {
                 case MeasurementProcedure.Unknown:
+                case MeasurementProcedure.NoFile:
                     break;
                 case MeasurementProcedure.Scan:
                     ParseScanDescription();
@@ -70,7 +71,7 @@ namespace Bev.IO.NmmReader
             }
             catch (Exception)
             {
-                // ignore
+                Procedure = MeasurementProcedure.NoFile;
             }
         }
 

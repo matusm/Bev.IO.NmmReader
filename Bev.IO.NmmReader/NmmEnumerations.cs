@@ -17,7 +17,8 @@
     /// </summary>
     public enum MeasurementProcedure
     {
-        Unknown,
+        NoFile,     // no *.dsc file found
+        Unknown,    // 
         Scan,       // topography or profile by LFS or AFM
         Point3D,    // freeform 3D data (µCMM)
         Object3D    // graphic primitives 3D data (µCMM)
