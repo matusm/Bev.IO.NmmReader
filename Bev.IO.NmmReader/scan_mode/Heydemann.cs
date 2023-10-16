@@ -3,7 +3,7 @@
 // Class to compensate periodic errors in signals of homodyne laser interferometers
 //
 // Usage:
-// 1.) create an instance of the Heydemann with three arrays as parameters:
+// 1.) create an instance of Heydemann with three arrays as parameters:
 //     - rawData: the actual length values in m to be corrected
 //     - sinValues: the respective sin-signal of the interferometer
 //     - cosValues: the respective cos-signal of the interferometer
@@ -46,10 +46,7 @@ namespace Bev.IO.NmmReader.scan_mode
         public double Amplitude { get; private set; } = 1.0;
         public double AmplitudeRelation { get; private set; } = 1.0;
 
-        public Heydemann(double[] rawData, double[] sinValues, double[] cosValues)
-        {
-            PerformCorrection(rawData, sinValues, cosValues);
-        }
+        public Heydemann(double[] rawData, double[] sinValues, double[] cosValues) => PerformCorrection(rawData, sinValues, cosValues);
 
         private void PerformCorrection(double[] rawData, double[] sinValues, double[] cosValues)
         {
@@ -94,8 +91,8 @@ namespace Bev.IO.NmmReader.scan_mode
 
         private void FitEllipse(double[] sin, double[] cos)
         {
-            var M = Matrix<double>.Build;
-            var V = Vector<double>.Build;
+            MatrixBuilder<double> M = Matrix<double>.Build;
+            VectorBuilder<double> V = Vector<double>.Build;
             double[,] matMtemp = new double[5, sin.Length];
             // M=[ks.*ks,kc.*kc,ks.*kc,ks,kc]
             for (int i = 0; i < sin.Length; i++)
@@ -106,15 +103,15 @@ namespace Bev.IO.NmmReader.scan_mode
                 matMtemp[3, i] = sin[i];
                 matMtemp[4, i] = cos[i];
             }
-            var matM = M.DenseOfArray(matMtemp);
+            Matrix<double> matM = M.DenseOfArray(matMtemp);
             // P=inv(M'*M)
-            var matQ = matM * matM.Transpose();
-            var matP = matQ.Inverse();
+            Matrix<double> matQ = matM * matM.Transpose();
+            Matrix<double> matP = matQ.Inverse();
             // s=P*M'*X;
-            var matX = V.Dense(sin.Length, 1.0);
+            Vector<double> matX = V.Dense(sin.Length, 1.0);
             // var matS = matP * matM * matX;
-            var matT = matM * matX;
-            var matS = matP * matT;
+            Vector<double> matT = matM * matX;
+            Vector<double> matS = matP * matT;
             double sA = matS[0];
             double sB = matS[1];
             double sC = matS[2];
