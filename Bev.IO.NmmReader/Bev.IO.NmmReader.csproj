@@ -39,6 +39,9 @@
   <ItemGroup>
     <Compile Include="3d_mode\ObjectType.cs" />
     <Compile Include="NmmDescriptionFileParser.cs" />
+    <Compile Include="scan_mode\NLcorrection.cs" />
+    <Compile Include="scan_mode\NLcorrectionDai.cs" />
+    <Compile Include="scan_mode\NLcorrectionStatus.cs" />
     <Compile Include="scan_mode\NmmDatFileParser.cs" />
     <Compile Include="scan_mode\NmmIndFileParser.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
@@ -53,7 +56,7 @@
     <Compile Include="NmmInstrumentCharacteristcs.cs" />
     <Compile Include="scan_mode\ScanMetadata.cs" />
     <Compile Include="DataLeveling.cs" />
-    <Compile Include="scan_mode\Heydemann.cs" />
+    <Compile Include="scan_mode\NLcorrectionHeydemann.cs" />
   </ItemGroup>
   <ItemGroup />
   <ItemGroup>
