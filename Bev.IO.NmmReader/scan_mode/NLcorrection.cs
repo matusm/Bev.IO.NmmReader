@@ -2,7 +2,7 @@
 {
     public class NLcorrection
     {
-        private const double daiCorrection = 1e-9;
+        private const double daiCorrection = 0.5e-9;
 
         public CorrectionStatus Status { get; private set; } = CorrectionStatus.Unknown;
         public double[] CorrectedData { get; }

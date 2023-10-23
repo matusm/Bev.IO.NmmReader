@@ -40,7 +40,7 @@ namespace Bev.IO.NmmReader.scan_mode
 
         private double GetPhi(double sin, double cos) => Math.Atan2(cos, sin);
 
-        private double GetCorrection(double sin, double cos) => CorrectionAmplitude * Math.Cos(4 * GetPhi(sin, cos)); // or Sin ?
+        private double GetCorrection(double sin, double cos) => - CorrectionAmplitude * Math.Sin(4 * GetPhi(sin, cos)); // or Sin ?
 
     }
 }
