@@ -38,6 +38,8 @@ namespace Bev.IO.NmmReader.scan_mode
         public CorrectionStatus Status { get; private set; } = CorrectionStatus.Unknown;
         public double CorrectionSpan { get; private set; } = 0.0;
         public double[] CorrectedData { get; private set; }
+        public double[] CorrectedSinValues { get; private set; }
+        public double[] CorrectedCosValues { get; private set; }
         // the 5 parameters characterizing an ellipse in the plane
         // the init values will result in a 0-correction
         public double OffsetX { get; private set; } = 0.0;
@@ -55,7 +57,11 @@ namespace Bev.IO.NmmReader.scan_mode
         {
             Status = CorrectionStatus.Uncorrected;
             CorrectedData = new double[rawData.Length];
+            CorrectedSinValues = new double[sinValues.Length];
+            CorrectedCosValues = new double[cosValues.Length];
             Array.Copy(rawData, CorrectedData, rawData.Length);
+            Array.Copy(sinValues, CorrectedSinValues, sinValues.Length);
+            Array.Copy(cosValues, CorrectedCosValues, cosValues.Length);
             if (rawData.Max() - rawData.Min() < lambda2)
             {
                 Status = CorrectionStatus.UncorrectedRangeTooSmall;
@@ -87,6 +93,9 @@ namespace Bev.IO.NmmReader.scan_mode
                 CorrectedData[i] = rawData[i] - deviation; // ATENTION: the sign is valid only for rawData = -LZ+AZ !
                 if (deviation > maxDeviation) maxDeviation = deviation;
                 if (deviation < minDeviation) minDeviation = deviation;
+                // write corrected quadrature signals
+                CorrectedSinValues[i] = SinCor(sinValues[i], cosValues[i]);
+                CorrectedCosValues[i] = CosCor(sinValues[i], cosValues[i]);
             }
             CorrectionSpan = maxDeviation - minDeviation;
             Status = CorrectionStatus.Corrected;
@@ -142,12 +151,16 @@ namespace Bev.IO.NmmReader.scan_mode
 
         private double HeydemannDeviationForPoint(double sin, double cos)
         {
-            double sinc = sin - OffsetX;
-            double cosc = sinc * Math.Sin(Phase) + AmplitudeRelation * (cos - OffsetY) / Math.Cos(Phase);
+            double sinc = SinCor(sin, cos);
+            double cosc = CosCor(sin, cos);
             double deviation = (lambda2 / (2.0 * Math.PI)) * (Math.Atan2(cos, sin) - Math.Atan2(cosc, sinc));
             if (deviation > 300e-9) deviation -= lambda2;
             if (deviation < -300e-9) deviation += lambda2;
             return deviation;
         }
+
+        private double SinCor(double sin, double cos) => sin - OffsetX;
+
+        private double CosCor(double sin, double cos) => SinCor(sin, cos) * Math.Sin(Phase) + AmplitudeRelation * (cos - OffsetY) / Math.Cos(Phase);
     }
 }
