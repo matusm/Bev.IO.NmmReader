@@ -1,9 +1,19 @@
-﻿//****************************************************************************************
+﻿//*******************************************************************************************
 //
-// Class to compensate periodic errors in signals of homodyne laser interferometers
+// Class to compensate specific periodic errors in signals of homodyne laser interferometers
+// 
+// To have an ideal circular Lissajous trajectory, the interferometer signals (sin, cos)
+// should have zero offset, identical amplitudes, and 90° phase difference.
+// Deviations from the ideal case leads to an eliptical Lissajous trajectory which can
+// be corrected by this class.
+//
+// The algorithm fits an ellipse in the sin/cos data.
+// For this MathNet.Numerics.LinearAlgebra is used.
+// The parameters of the fitted ellipse are accessible as properties.
+//
 //
 // Usage:
-// 1.) create an instance of the Heydemann with three arrays as parameters:
+// 1.) create an instance of NLcorrectionHeydemann with three arrays as parameters:
 //     - rawData: the actual length values in m to be corrected
 //     - sinValues: the respective sin-signal of the interferometer
 //     - cosValues: the respective cos-signal of the interferometer
@@ -13,17 +23,14 @@
 // However some properties (getters) provide details on the correction status,
 // most important is CorrectionSpan (in m) the maximum correction applied,
 // and Status which gives information if there was an correction at all.
+// Backtransformed interferometer signals are accessible, too. 
 // in cases where there is no correction possible, CorrectionData just equals rawData.
 // 
-// Simply speaking the algorithm fits an ellipse in the sin/cos data.
-// For this MathNet.Numerics.LinearAlgebra is used.
-// The parameters of the fitted ellipse are accessible, too.
-//
 // The whole calculation is performed in the constructor only.
 // 
 // Author: Michael Matus, 2020-2022
 //
-//****************************************************************************************
+//*******************************************************************************************
 
 using System;
 using MathNet.Numerics.LinearAlgebra;
@@ -33,8 +40,6 @@ namespace Bev.IO.NmmReader.scan_mode
 {
     public class NLcorrectionHeydemann
     {
-        private const double lambda2 = 316.409754e-9; // Lambda/2 in m, for air and NMM laser rack
-
         public CorrectionStatus Status { get; private set; } = CorrectionStatus.Unknown;
         public double CorrectionSpan { get; private set; } = 0.0;
         public double[] CorrectedData { get; private set; }
@@ -62,7 +67,7 @@ namespace Bev.IO.NmmReader.scan_mode
             Array.Copy(rawData, CorrectedData, rawData.Length);
             Array.Copy(sinValues, CorrectedSinValues, sinValues.Length);
             Array.Copy(cosValues, CorrectedCosValues, cosValues.Length);
-            if (rawData.Max() - rawData.Min() < lambda2)
+            if (rawData.Max() - rawData.Min() < NLconstants.lambda2)
             {
                 Status = CorrectionStatus.UncorrectedRangeTooSmall;
                 return;
@@ -153,9 +158,9 @@ namespace Bev.IO.NmmReader.scan_mode
         {
             double sinc = SinCor(sin, cos);
             double cosc = CosCor(sin, cos);
-            double deviation = (lambda2 / (2.0 * Math.PI)) * (Math.Atan2(cos, sin) - Math.Atan2(cosc, sinc));
-            if (deviation > 300e-9) deviation -= lambda2;
-            if (deviation < -300e-9) deviation += lambda2;
+            double deviation = (NLconstants.lambda2 / (2.0 * Math.PI)) * (Math.Atan2(cos, sin) - Math.Atan2(cosc, sinc));
+            if (deviation > 300e-9) deviation -= NLconstants.lambda2;
+            if (deviation < -300e-9) deviation += NLconstants.lambda2;
             return deviation;
         }
 

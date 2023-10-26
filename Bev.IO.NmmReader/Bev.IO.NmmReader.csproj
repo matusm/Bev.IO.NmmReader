@@ -42,6 +42,7 @@
   <ItemGroup>
     <Compile Include="3d_mode\ObjectType.cs" />
     <Compile Include="NmmDescriptionFileParser.cs" />
+    <Compile Include="scan_mode\NLconstants.cs" />
     <Compile Include="scan_mode\NLcorrection.cs" />
     <Compile Include="scan_mode\NLcorrectionDai.cs" />
     <Compile Include="scan_mode\NLcorrectionStatus.cs" />

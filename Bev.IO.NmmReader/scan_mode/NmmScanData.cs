@@ -62,9 +62,12 @@ namespace Bev.IO.NmmReader.scan_mode
         }
 
         public ScanMetaData MetaData { get; private set; }
+        public double NonlinearityCorrectionSpan { get; private set; } = 0.0;
+        public bool NonlinearityCorrectionApplied { get; private set; } = false;
+
         public bool HeydemannCorrectionApplied { get; private set; } = false;
-        public double HeydemannCorrectionSpan { get; private set; } = 0.0;
-        public bool NLcorrectionApplied { get; private set; } = false;
+        [Obsolete("HeydemannCorrectionSpan is deprecated, please use NonlinearityCorrectionSpan instead.")]
+        public double HeydemannCorrectionSpan => NonlinearityCorrectionSpan;
 
         // this is the main method: returns the profile for a given symbol and index 
         public double[] ExtractProfile(string columnSymbol, int profileIndex, TopographyProcessType type)
@@ -111,7 +114,7 @@ namespace Bev.IO.NmmReader.scan_mode
         public void ApplyNLcorrection()
         {
             // only the topograhy height will be corrected
-            if (NLcorrectionApplied) return;
+            if (NonlinearityCorrectionApplied) return;
             if (!ColumnPresent("-LZ+AZ")) return;
             if (!ColumnPresent("F4")) return;
             if (!ColumnPresent("F5")) return;
@@ -121,8 +124,8 @@ namespace Bev.IO.NmmReader.scan_mode
                 ExtractProfile("F4", 0, TopographyProcessType.ForwardOnly),
                 ExtractProfile("F5", 0, TopographyProcessType.ForwardOnly));
             topographyData.InsertColumnFor(GetColumnIndexFor("-LZ+AZ"), nlCorrection.CorrectedData, ScanDirection.Forward);
-            NLcorrectionApplied = true;
-            HeydemannCorrectionSpan = nlCorrection.CorrectionSpan;
+            NonlinearityCorrectionApplied = true;
+            NonlinearityCorrectionSpan = nlCorrection.CorrectionSpan;
             // if present, correct the backward scan
             if (MetaData.ScanStatus == ScanDirectionStatus.ForwardAndBackward ||
                 MetaData.ScanStatus == ScanDirectionStatus.ForwardAndBackwardJustified)
@@ -133,13 +136,14 @@ namespace Bev.IO.NmmReader.scan_mode
                     ExtractProfile("F5", 0, TopographyProcessType.BackwardOnly));
 
                 topographyData.InsertColumnFor(GetColumnIndexFor("-LZ+AZ"), nlCorrection.CorrectedData, ScanDirection.Backward);
-                NLcorrectionApplied = true;
-                HeydemannCorrectionSpan = Math.Max(HeydemannCorrectionSpan, nlCorrection.CorrectionSpan);
+                NonlinearityCorrectionApplied = true;
+                NonlinearityCorrectionSpan = Math.Max(NonlinearityCorrectionSpan, nlCorrection.CorrectionSpan);
             }
         }
 
         // currently this works only for the "-LZ+AZ" channel
         // LX, LY, LZ are not corrected!
+        [Obsolete("ApplyHeydemannCorrection is deprecated, please use ApplyNLcorrection instead.")]
         public void ApplyHeydemannCorrection()
         {
             // only the topograhy height will be corrected
@@ -156,7 +160,7 @@ namespace Bev.IO.NmmReader.scan_mode
             {
                 topographyData.InsertColumnFor(GetColumnIndexFor("-LZ+AZ"), heydemann.CorrectedData, ScanDirection.Forward);
                 HeydemannCorrectionApplied = true;
-                HeydemannCorrectionSpan = heydemann.CorrectionSpan;
+                NonlinearityCorrectionSpan = heydemann.CorrectionSpan;
             }
             if (MetaData.ScanStatus == ScanDirectionStatus.ForwardAndBackward ||
                 MetaData.ScanStatus == ScanDirectionStatus.ForwardAndBackwardJustified)
@@ -169,7 +173,7 @@ namespace Bev.IO.NmmReader.scan_mode
                 {
                     topographyData.InsertColumnFor(GetColumnIndexFor("-LZ+AZ"), heydemann.CorrectedData, ScanDirection.Backward);
                     HeydemannCorrectionApplied = true;
-                    HeydemannCorrectionSpan = Math.Max(HeydemannCorrectionSpan, heydemann.CorrectionSpan);
+                    NonlinearityCorrectionSpan = Math.Max(NonlinearityCorrectionSpan, heydemann.CorrectionSpan);
                 }
             }
         }

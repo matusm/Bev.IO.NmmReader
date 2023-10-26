@@ -2,11 +2,11 @@
 {
     public class NLcorrection
     {
-        private const double defaultDaiCorrection = 0.5e-9;
-
         public CorrectionStatus Status { get; private set; } = CorrectionStatus.Unknown;
         public double[] CorrectedData { get; }
-        public double CorrectionSpan { get; private set; } = 0.0;
+        public double CorrectionSpan => CorrectionSpan2thOrder + CorrectionSpan4thOrder;
+        public double CorrectionSpan2thOrder { get; private set; } = 0.0;
+        public double CorrectionSpan4thOrder { get; private set; } = 0.0;
 
         // The Dai correction is performed in any case with the provided correction value
         public NLcorrection(double[] rawData, double[] sinValues, double[] cosValues, double empiricalCorrection)
@@ -14,11 +14,12 @@
             NLcorrectionHeydemann heydemann = new NLcorrectionHeydemann(rawData, sinValues, cosValues);
             NLcorrectionDai gaoliang = new NLcorrectionDai(heydemann.CorrectedData, heydemann.CorrectedSinValues, heydemann.CorrectedCosValues, empiricalCorrection);
             CorrectedData = gaoliang.CorrectedData;
-            CorrectionSpan = heydemann.CorrectionSpan + gaoliang.CorrectionSpan;
+            CorrectionSpan2thOrder = heydemann.CorrectionSpan;
+            CorrectionSpan4thOrder = gaoliang.CorrectionSpan;
             Status = heydemann.Status;
         }
 
-        // The Dai correction is performed with an estimated value or wit the default value, depending on the Heydemann success
+        // The Dai correction is performed with an estimated value or with the default value, depending on the Heydemann success
         public NLcorrection(double[] rawData, double[] sinValues, double[] cosValues)
         {
             NLcorrectionHeydemann heydemann = new NLcorrectionHeydemann(rawData, sinValues, cosValues);
@@ -29,10 +30,11 @@
             }
             else
             {
-                gaoliang = new NLcorrectionDai(heydemann.CorrectedData, heydemann.CorrectedSinValues, heydemann.CorrectedCosValues, defaultDaiCorrection);
+                gaoliang = new NLcorrectionDai(heydemann.CorrectedData, heydemann.CorrectedSinValues, heydemann.CorrectedCosValues, NLconstants.defaultDaiCorrection);
             }
             CorrectedData = gaoliang.CorrectedData;
-            CorrectionSpan = heydemann.CorrectionSpan + gaoliang.CorrectionSpan;
+            CorrectionSpan2thOrder = heydemann.CorrectionSpan;
+            CorrectionSpan4thOrder = gaoliang.CorrectionSpan;
             Status = heydemann.Status;
         }
     }

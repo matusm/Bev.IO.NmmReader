@@ -1,12 +1,46 @@
-﻿using System;
+﻿//*******************************************************************************************
+//
+// Class to compensate specific periodic errors in signals of homodyne laser interferometers
+// 
+// To have an ideal circular Lissajous trajectory, the interferometer signals (sin, cos)
+// should have zero offset, identical amplitudes, and 90° phase difference.
+// Deviations from the ideal case leads to an eliptical Lissajous trajectory which can
+// be corrected by the NLcorrectionHeydemann (2th-order nonlinearity).
+//
+// In the NMM-1 additional nonlinearity contributions are present (4th-order).
+// This specific nonlinearity is corrected by this class.
+//
+//
+// Usage:
+// 1.) create an instance of NLcorrectionDai with three arrays as parameters:
+//     - rawData: the actual length values in m to be corrected
+//     - sinValues: the respective sin-signal of the interferometer
+//     - cosValues: the respective cos-signal of the interferometer
+// 2.) consume the corrected data via the CorrectedData property
+// 
+// A constructor with an additional parameter (empirical correction amplitude)
+// is also provided.
+//
+// There are no user accessible methods for this class.
+// However some properties (getters) provide details on the correction status,
+// most important is CorrectionSpan (in m) the maximum correction applied,
+// and Status which gives information if there was an correction at all.
+// in cases where there is no correction possible, CorrectionData just equals rawData.
+// 
+// The whole calculation is performed in the constructor only.
+// 
+// Author: Michael Matus, 2023
+//
+//*******************************************************************************************
+
+
+using System;
 using At.Matus.StatisticPod;
 
 namespace Bev.IO.NmmReader.scan_mode
 {
     public class NLcorrectionDai
     {
-        private const double empiricalNLfactor = 305.25e-10; // in m. This is an empirical constant, found to be usefull for 0.5 nm correction
-
         public CorrectionStatus Status { get; private set; } = CorrectionStatus.Unknown;
         public double CorrectionAmplitude { get; private set; }
         public double CorrectionSpan => CorrectionAmplitude * 2;
@@ -70,7 +104,7 @@ namespace Bev.IO.NmmReader.scan_mode
 
         private double EstimateCorrectionAmplitude(double[] sinValues, double[] cosValues)
         {
-            return empiricalNLfactor * EstimateCircleDeformation(sinValues, cosValues);
+            return NLconstants.empiricalNLfactor * EstimateCircleDeformation(sinValues, cosValues);
         }
 
         private double Radius(double x, double y) => Math.Sqrt(x * x + y * y);
