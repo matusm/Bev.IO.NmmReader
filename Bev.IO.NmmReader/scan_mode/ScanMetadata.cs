@@ -143,65 +143,65 @@ namespace Bev.IO.NmmReader.scan_mode
             ScanIndex = obj.ScanIndex;
         }
 
-        private void FillInstrumentData(NmmInstrumentCharacteristcs obj)
+        private void FillInstrumentData(NmmInstrumentCharacteristcs instrument)
         {
-            InstrumentIdentifier = obj.InstrumentIdentifier;
-            User = obj.User;
-            OrganisationLong = obj.OrganisationLong;
-            Organisation = obj.Organisation;
-            InstrumentManufacturer = obj.InstrumentManufacturer;
-            InstrumentModel = obj.InstrumentModel;
-            InstrumentSerial = obj.InstrumentSerial;
-            InstrumentVersion = obj.InstrumentVersion;
-            EnvironmentMode = obj.EnvironmentMode;
-            Institute = obj.Institute;
+            InstrumentIdentifier = instrument.InstrumentIdentifier;
+            User = instrument.User;
+            OrganisationLong = instrument.OrganisationLong;
+            Organisation = instrument.Organisation;
+            InstrumentManufacturer = instrument.InstrumentManufacturer;
+            InstrumentModel = instrument.InstrumentModel;
+            InstrumentSerial = instrument.InstrumentSerial;
+            InstrumentVersion = instrument.InstrumentVersion;
+            EnvironmentMode = instrument.EnvironmentMode;
+            Institute = instrument.Institute;
         }
 
-        private void FillIndexData(NmmIndFileParser obj)
+        private void FillIndexData(NmmIndFileParser indexFile)
         {
             if (DataMask == 0)
             {
-                DataMask = obj.DataMask;
+                DataMask = indexFile.DataMask;
                 ColumnPredicates = Scan.ColumnPredicatesFor(DataMask);
                 NumberOfColumnsInFile = ColumnPredicates.Length;
             }
             // prefer NumberOfProfiles infered from the *.ind file
-            NumberOfProfiles = obj.NumberOfProfiles;
+            NumberOfProfiles = indexFile.NumberOfProfiles;
             // end NumberOfProfiles
-            NumberOfSpuriousProfiles = obj.SpuriousProfiles;
-            NumberOfDataPoints = obj.NominalDataPoints;
-            NumberOfGlitchedDataPoints = obj.DataPointsGlitch;
-            SpuriousDataLines = obj.SpuriousDataLines;
-            ScanStatus = obj.ScanStatus;
-            CreationDate = obj.CreationDate;
-            ScanDuration = obj.ScanDuration;
-            ForwardProfileLengths = obj.ForwardProfileLengths.ToArray();
-            BackwardProfileLengths = obj.BackwardProfileLengths.ToArray();
+            NumberOfSpuriousProfiles = indexFile.SpuriousProfiles;
+            NumberOfDataPoints = indexFile.NominalDataPoints;
+            NumberOfGlitchedDataPoints = indexFile.DataPointsGlitch;
+            SpuriousDataLines = indexFile.SpuriousDataLines;
+            ScanStatus = indexFile.ScanStatus;
+            CreationDate = indexFile.CreationDate;
+            ScanDuration = indexFile.ScanDuration;
+            ForwardProfileLengths = indexFile.ForwardProfileLengths.ToArray();
+            BackwardProfileLengths = indexFile.BackwardProfileLengths.ToArray();
 
         }
 
-        private void FillDescriptionData(NmmDescriptionFileParser obj)
+        private void FillDescriptionData(NmmDescriptionFileParser description)
         {
             // prefer DataMask from the *.dsc file
-            DataMask = obj.DataMask;
+            DataMask = description.DataMask;
             ColumnPredicates = Scan.ColumnPredicatesFor(DataMask);
             NumberOfColumnsInFile = ColumnPredicates.Length;
             // end DataMask
             if (NumberOfProfiles == 0)
             {
-                NumberOfProfiles = obj.NumberOfProfiles;
+                NumberOfProfiles = description.NumberOfProfiles;
             }
-            NumberOfScans = obj.NumberOfScans;
-            Procedure = obj.Procedure;
-            ScanFieldDeltaX = obj.ScanFieldDeltaX;
-            ScanFieldDeltaY = obj.ScanFieldDeltaY;
-            ScanFieldDimensionX = obj.ScanFieldDimensionX;
-            ScanFieldDimensionY = obj.ScanFieldDimensionY;
-            ScanSpeed = obj.ScanSpeed;
-            ScanFieldRotation = obj.ScanFieldRotation;
-            SpmTechnique = obj.SpmTechnique;
-            ScanComments = obj.ScanComments;
-            ProbeDesignation = obj.ProbeDesignation;
+            NumberOfScans = description.NumberOfScans;
+            Procedure = description.Procedure;
+            ScanFieldDeltaX = description.ScanFieldDeltaX;
+            ScanFieldDeltaY = description.ScanFieldDeltaY;
+            ScanFieldDimensionX = description.ScanFieldDimensionX;
+            ScanFieldDimensionY = description.ScanFieldDimensionY;
+            ScanSpeed = description.ScanSpeed;
+            ScanFieldRotation = description.ScanFieldRotation;
+            SpmTechnique = description.SpmTechnique;
+            ScanComments = description.ScanComments;
+            ProbeDesignation = description.ProbeDesignation;
             // first 3 lines of the "comment field" are taken as the
             // "sample description" according to ISO 28600:2012
             SampleIdentifier = "(not specified)";
@@ -212,19 +212,19 @@ namespace Bev.IO.NmmReader.scan_mode
             if (ScanComments.Count >= 3) SampleSpecification = ScanComments[2];
         }
 
-        private void FillEnvironmentalData(NmmEnvironmentData obj)
+        private void FillEnvironmentalData(NmmEnvironmentData environmentSensors)
         {
-            AirTemperature = obj.AirTemperature;
-            SampleTemperature = obj.SampleTemperature;
-            RelativeHumidity = obj.RelativeHumidity;
-            BarometricPressure = obj.BarometricPressure;
-            AirTemperatureDrift = obj.AirTemperatureDrift;
-            SampleTemperatureDrift = obj.SampleTemperatureDrift;
-            RelativeHumidityDrift = obj.RelativeHumidityDrift;
-            BarometricPressureDrift = obj.BarometricPressureDrift;
-            AirTemperatureGradient = obj.AirTemparatureGradient;
-            NumberOfAirSamples = obj.NumberOfAirSamples;
-            AirSampleSourceText = obj.AirSampleSourceText;
+            AirTemperature = environmentSensors.AirTemperature;
+            SampleTemperature = environmentSensors.SampleTemperature;
+            RelativeHumidity = environmentSensors.RelativeHumidity;
+            BarometricPressure = environmentSensors.BarometricPressure;
+            AirTemperatureDrift = environmentSensors.AirTemperatureDrift;
+            SampleTemperatureDrift = environmentSensors.SampleTemperatureDrift;
+            RelativeHumidityDrift = environmentSensors.RelativeHumidityDrift;
+            BarometricPressureDrift = environmentSensors.BarometricPressureDrift;
+            AirTemperatureGradient = environmentSensors.AirTemparatureGradient;
+            NumberOfAirSamples = environmentSensors.NumberOfAirSamples;
+            AirSampleSourceText = environmentSensors.AirSampleSourceText;
         }
     }
 }

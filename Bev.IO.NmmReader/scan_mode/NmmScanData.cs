@@ -2,7 +2,7 @@
 //
 // Class to handle topographic surface scan data (including all metadata)
 // of the SIOS NMM.
-// This is the main class for input of surface scans!
+// This is the main class for input of surface scans.
 //
 // Usage:
 // 1.) Create an instance of the NmmFileName class.
@@ -62,12 +62,16 @@ namespace Bev.IO.NmmReader.scan_mode
         }
 
         public ScanMetaData MetaData { get; private set; }
-        public double NonlinearityCorrectionSpan { get; private set; } = 0.0;
+
+        public double NonlinearityCorrectionSpan => HeydemannCorrectionSpan + DaiCorrectionSpan;
+        public double HeydemannCorrectionSpan { get; private set; } = 0.0;
+        public double DaiCorrectionSpan { get; private set; } = 0.0;
         public bool NonlinearityCorrectionApplied { get; private set; } = false;
 
-        public bool HeydemannCorrectionApplied { get; private set; } = false;
-        [Obsolete("HeydemannCorrectionSpan is deprecated, please use NonlinearityCorrectionSpan instead.")]
-        public double HeydemannCorrectionSpan => NonlinearityCorrectionSpan;
+        [Obsolete("HeydemannCorrectionApplied is deprecated, please use NonlinearityCorrectionApplied instead.", true)]
+        public bool HeydemannCorrectionApplied => NonlinearityCorrectionApplied;
+        
+
 
         // this is the main method: returns the profile for a given symbol and index 
         public double[] ExtractProfile(string columnSymbol, int profileIndex, TopographyProcessType type)
@@ -125,7 +129,8 @@ namespace Bev.IO.NmmReader.scan_mode
                 ExtractProfile("F5", 0, TopographyProcessType.ForwardOnly));
             topographyData.InsertColumnFor(GetColumnIndexFor("-LZ+AZ"), nlCorrection.CorrectedData, ScanDirection.Forward);
             NonlinearityCorrectionApplied = true;
-            NonlinearityCorrectionSpan = nlCorrection.CorrectionSpan;
+            HeydemannCorrectionSpan = nlCorrection.CorrectionSpan2thOrder;
+            DaiCorrectionSpan = nlCorrection.CorrectionSpan4thOrder;
             // if present, correct the backward scan
             if (MetaData.ScanStatus == ScanDirectionStatus.ForwardAndBackward ||
                 MetaData.ScanStatus == ScanDirectionStatus.ForwardAndBackwardJustified)
@@ -137,46 +142,15 @@ namespace Bev.IO.NmmReader.scan_mode
 
                 topographyData.InsertColumnFor(GetColumnIndexFor("-LZ+AZ"), nlCorrection.CorrectedData, ScanDirection.Backward);
                 NonlinearityCorrectionApplied = true;
-                NonlinearityCorrectionSpan = Math.Max(NonlinearityCorrectionSpan, nlCorrection.CorrectionSpan);
+                HeydemannCorrectionSpan = Math.Max(HeydemannCorrectionSpan, nlCorrection.CorrectionSpan2thOrder);
+                DaiCorrectionSpan = Math.Max(DaiCorrectionSpan, nlCorrection.CorrectionSpan4thOrder);
             }
         }
 
         // currently this works only for the "-LZ+AZ" channel
         // LX, LY, LZ are not corrected!
-        [Obsolete("ApplyHeydemannCorrection is deprecated, please use ApplyNLcorrection instead.")]
-        public void ApplyHeydemannCorrection()
-        {
-            // only the topograhy height will be corrected
-            if (HeydemannCorrectionApplied) return;
-            if (!ColumnPresent("-LZ+AZ")) return;
-            if (!ColumnPresent("F4")) return;
-            if (!ColumnPresent("F5")) return;
-
-            NLcorrectionHeydemann heydemann = new NLcorrectionHeydemann(
-                ExtractProfile("-LZ+AZ", 0, TopographyProcessType.ForwardOnly),
-                ExtractProfile("F4", 0, TopographyProcessType.ForwardOnly),
-                ExtractProfile("F5", 0, TopographyProcessType.ForwardOnly));
-            if (heydemann.Status == CorrectionStatus.Corrected)
-            {
-                topographyData.InsertColumnFor(GetColumnIndexFor("-LZ+AZ"), heydemann.CorrectedData, ScanDirection.Forward);
-                HeydemannCorrectionApplied = true;
-                NonlinearityCorrectionSpan = heydemann.CorrectionSpan;
-            }
-            if (MetaData.ScanStatus == ScanDirectionStatus.ForwardAndBackward ||
-                MetaData.ScanStatus == ScanDirectionStatus.ForwardAndBackwardJustified)
-            {
-                heydemann = new NLcorrectionHeydemann(
-                    ExtractProfile("-LZ+AZ", 0, TopographyProcessType.BackwardOnly),
-                    ExtractProfile("F4", 0, TopographyProcessType.BackwardOnly),
-                    ExtractProfile("F5", 0, TopographyProcessType.BackwardOnly));
-                if (heydemann.Status == CorrectionStatus.Corrected)
-                {
-                    topographyData.InsertColumnFor(GetColumnIndexFor("-LZ+AZ"), heydemann.CorrectedData, ScanDirection.Backward);
-                    HeydemannCorrectionApplied = true;
-                    NonlinearityCorrectionSpan = Math.Max(NonlinearityCorrectionSpan, heydemann.CorrectionSpan);
-                }
-            }
-        }
+        [Obsolete("ApplyHeydemannCorrection is deprecated, please use ApplyNLcorrection instead.", true)]
+        public void ApplyHeydemannCorrection() => ApplyNLcorrection();
 
         private void LoadTopographyData()
         {
