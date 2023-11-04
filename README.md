@@ -59,7 +59,14 @@ This is an enumeration for the predefined 3D objects (like spheres or planes) wh
 
 3D mode is not implemented yet.
 
+### Correction of Interferometric Nonlinearity Errors
+
+![Topography of uncorrected data](SiMetrics0343_03_4.png)
+
+![Topography of corrected data](SiMetrics0343_03_5.png)
+
 ## Dependencies
 
 The Heydemann correction is performed with straight forward matrix algebra using [Math.NET numerics](https://numerics.mathdotnet.com)
 
+At.Matus.StatisticPod: https://github.com/matusm/At.Matus.StatisticPod
