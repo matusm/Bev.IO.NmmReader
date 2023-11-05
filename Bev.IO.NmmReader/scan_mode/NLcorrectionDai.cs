@@ -45,6 +45,8 @@ namespace Bev.IO.NmmReader.scan_mode
         public double CorrectionAmplitude { get; private set; }
         public double CorrectionSpan => CorrectionAmplitude * 2;
         public double[] CorrectedData { get; private set; }
+        public double[] CorrectedSinValues { get; private set; }
+        public double[] CorrectedCosValues { get; private set; }
 
         public NLcorrectionDai(double[] rawData, double[] sinValues, double[] cosValues)
         {
@@ -62,6 +64,8 @@ namespace Bev.IO.NmmReader.scan_mode
         {
             Status = CorrectionStatus.Uncorrected;
             CorrectedData = new double[rawData.Length];
+            CorrectedSinValues = new double[rawData.Length];
+            CorrectedCosValues = new double[rawData.Length];
             Array.Copy(rawData, CorrectedData, rawData.Length);
             if (sinValues.Length != cosValues.Length)
             {
@@ -77,18 +81,21 @@ namespace Bev.IO.NmmReader.scan_mode
             for (int i = 0; i < rawData.Length; i++)
             {
                 CorrectedData[i] += GetCorrection(sinValues[i], cosValues[i]);
+                // write corrected quadrature signals
+                CorrectedSinValues[i] = SinCor(sinValues[i], cosValues[i]);
+                CorrectedCosValues[i] = CosCor(sinValues[i], cosValues[i]);
             }
         }
 
         private double Phi(double x, double y) => Math.Atan2(y, x);
 
-        private double GetCorrection(double sin, double cos) => - CorrectionAmplitude * Math.Sin(4 * Phi(sin, cos));
+        private double GetCorrection(double sin, double cos) => -CorrectionAmplitude * Math.Sin(4 * Phi(sin, cos));
 
         private double EstimateCircleDeformation(double[] sinValues, double[] cosValues)
         {
             StatisticPod allRadii = new StatisticPod();
             StatisticPod axisRadii = new StatisticPod();
-            StatisticPod medianRadii= new StatisticPod();
+            StatisticPod medianRadii = new StatisticPod();
             for (int i = 0; i < sinValues.Length; i++)
             {
                 double s = sinValues[i];
@@ -96,10 +103,12 @@ namespace Bev.IO.NmmReader.scan_mode
                 double r = Radius(s, c);
                 double phi = PhiDeg(s, c);
                 allRadii.Update(r);
-                if (IsAxis(phi)) axisRadii.Update(r);
-                if (IsMedian(phi)) medianRadii.Update(r);
+                if (IsNearToAxis(phi)) axisRadii.Update(r);
+                if (IsNearToMedian(phi)) medianRadii.Update(r);
             }
-            return (medianRadii.AverageValue - axisRadii.AverageValue) / allRadii.AverageValue;
+            absoluteDeviation = medianRadii.AverageValue - axisRadii.AverageValue;
+            double relativeDeviation = absoluteDeviation / allRadii.AverageValue;
+            return relativeDeviation;
         }
 
         private double EstimateCorrectionAmplitude(double[] sinValues, double[] cosValues)
@@ -111,7 +120,7 @@ namespace Bev.IO.NmmReader.scan_mode
 
         private double PhiDeg(double x, double y) => Phi(x, y) * 180 / Math.PI;
 
-        private bool IsAxis(double phi)
+        private bool IsNearToAxis(double phi)
         {
             if (IsNear(phi, 0)) return true;
             if (IsNear(phi, 90)) return true;
@@ -121,7 +130,7 @@ namespace Bev.IO.NmmReader.scan_mode
             return false;
         }
 
-        private bool IsMedian(double phi)
+        private bool IsNearToMedian(double phi)
         {
             if (IsNear(phi, 45)) return true;
             if (IsNear(phi, 135)) return true;
@@ -136,5 +145,20 @@ namespace Bev.IO.NmmReader.scan_mode
             if (Math.Abs(target - phi) < eps) return true;
             return false;
         }
+
+        private double SinCor(double sin, double cos)
+        {
+            return sin + DeltaRadius(sin, cos) * Math.Sin(Phi(sin, cos));
+        }
+
+        private double CosCor(double sin, double cos)
+        {
+            return cos + DeltaRadius(sin,cos) * Math.Cos(Phi(sin, cos));
+        }
+
+        private double DeltaRadius(double sin, double cos) => absoluteDeviation * Math.Sin(4 * Phi(sin, cos)+Math.PI/4);
+
+        private double absoluteDeviation;
+
     }
 }

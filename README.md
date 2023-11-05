@@ -59,7 +59,7 @@ This is an enumeration for the predefined 3D objects (like spheres or planes) wh
 
 3D mode is not implemented yet.
 
-### Correction of Interferometric Nonlinearity Errors
+## Correction of Interferometric Nonlinearity Errors
 
 ![Topography of uncorrected data](SiMetrics0343_03_4.png)
 
