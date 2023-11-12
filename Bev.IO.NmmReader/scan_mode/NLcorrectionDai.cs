@@ -33,7 +33,6 @@
 //
 //*******************************************************************************************
 
-
 using System;
 using At.Matus.StatisticPod;
 
@@ -45,63 +44,71 @@ namespace Bev.IO.NmmReader.scan_mode
         public double CorrectionAmplitude { get; private set; }
         public double CorrectionSpan => CorrectionAmplitude * 2;
         public double[] CorrectedData { get; private set; }
-        public double[] CorrectedSinValues { get; private set; }
-        public double[] CorrectedCosValues { get; private set; }
+        public Quad[] QuadratureValues { get; }
+        public Quad[] CorrectedQuadratureValues { get; private set; }
 
         public NLcorrectionDai(double[] rawData, double[] sinValues, double[] cosValues)
         {
-            CorrectionAmplitude = EstimateCorrectionAmplitude(sinValues, cosValues);
-            PerformCorrection(rawData, sinValues, cosValues);
+            Status = CheckInput(rawData, sinValues, cosValues);
+            QuadratureValues = CombineSignals(sinValues, cosValues);
+            CorrectionAmplitude = EstimateCorrectionAmplitude();
+            PerformCorrection(rawData);
         }
 
         public NLcorrectionDai(double[] rawData, double[] sinValues, double[] cosValues, double empiricalCorrection)
         {
+            Status = CheckInput(rawData, sinValues, cosValues);
+            QuadratureValues = CombineSignals(sinValues, cosValues);
             CorrectionAmplitude = empiricalCorrection;
-            PerformCorrection(rawData, sinValues, cosValues);
+            PerformCorrection(rawData);
         }
 
-        private void PerformCorrection(double[] rawData, double[] sinValues, double[] cosValues)
+        private CorrectionStatus CheckInput(double[] rawData, double[] sinValues, double[] cosValues)
         {
-            Status = CorrectionStatus.Uncorrected;
-            CorrectedData = new double[rawData.Length];
-            CorrectedSinValues = new double[rawData.Length];
-            CorrectedCosValues = new double[rawData.Length];
-            Array.Copy(rawData, CorrectedData, rawData.Length);
             if (sinValues.Length != cosValues.Length)
-            {
-                Status = CorrectionStatus.UncorrectedInconsitentData;
-                return;
-            }
+                return CorrectionStatus.UncorrectedInconsitentData;
             if (sinValues.Length != rawData.Length)
-            {
-                Status = CorrectionStatus.UncorrectedInconsitentData;
-                return;
-            }
+                return CorrectionStatus.UncorrectedInconsitentData;
+            return CorrectionStatus.Uncorrected;
+        }
 
+        private Quad[] CombineSignals(double[] sinValues, double[] cosValues)
+        {
+            Quad[] quad = new Quad[sinValues.Length];
+            for (int i = 0; i < quad.Length; i++)
+            {
+                quad[i] = new Quad(sinValues[i], cosValues[i]);
+            }
+            return quad;
+        }
+
+        private void PerformCorrection(double[] rawData)
+        {
+            CorrectedData = new double[rawData.Length];
+            CorrectedQuadratureValues = new Quad[QuadratureValues.Length];
+            Array.Copy(rawData, CorrectedData, rawData.Length);
+            if (Status != CorrectionStatus.Uncorrected) 
+                return;
             for (int i = 0; i < rawData.Length; i++)
             {
-                CorrectedData[i] += GetCorrection(sinValues[i], cosValues[i]);
-                // write corrected quadrature signals
-                CorrectedSinValues[i] = SinCor(sinValues[i], cosValues[i]);
-                CorrectedCosValues[i] = CosCor(sinValues[i], cosValues[i]);
+                CorrectedData[i] += GetLengthCorrection(QuadratureValues[i]);
+                CorrectedQuadratureValues[i] = CorrectQuadValue(QuadratureValues[i]);
             }
+            Status = CorrectionStatus.Corrected;
         }
 
-        private double Phi(double x, double y) => Math.Atan2(y, x);
+        private double GetLengthCorrection(Quad quad) => -CorrectionAmplitude * Math.Sin(4 * quad.Phi);
 
-        private double GetCorrection(double sin, double cos) => -CorrectionAmplitude * Math.Sin(4 * Phi(sin, cos));
-
-        private double EstimateCircleDeformation(double[] sinValues, double[] cosValues)
+        private double EstimateCircleSquashing()
         {
             StatisticPod allRadii = new StatisticPod();
             StatisticPod axisRadii = new StatisticPod();
             StatisticPod medianRadii = new StatisticPod();
-            for (int i = 0; i < sinValues.Length; i++)
+            for (int i = 0; i < QuadratureValues.Length; i++)
             {
-                double s = sinValues[i];
-                double c = cosValues[i];
-                double r = Radius(s, c);
-                double phi = PhiDeg(s, c);
+                Quad q = QuadratureValues[i];
+                double r = q.Radius;
+                double phi = q.PhiDeg;
                 allRadii.Update(r);
                 if (IsNearToAxis(phi)) axisRadii.Update(r);
                 if (IsNearToMedian(phi)) medianRadii.Update(r);
@@ -111,14 +118,7 @@ namespace Bev.IO.NmmReader.scan_mode
             return relativeDeviation;
         }
 
-        private double EstimateCorrectionAmplitude(double[] sinValues, double[] cosValues)
-        {
-            return NLconstants.empiricalNLfactor * EstimateCircleDeformation(sinValues, cosValues);
-        }
-
-        private double Radius(double x, double y) => Math.Sqrt(x * x + y * y);
-
-        private double PhiDeg(double x, double y) => Phi(x, y) * 180 / Math.PI;
+        private double EstimateCorrectionAmplitude() => NLconstants.empiricalNLfactor * EstimateCircleSquashing();
 
         private bool IsNearToAxis(double phi)
         {
@@ -146,17 +146,13 @@ namespace Bev.IO.NmmReader.scan_mode
             return false;
         }
 
-        private double SinCor(double sin, double cos)
+        private Quad CorrectQuadValue(Quad quad)
         {
-            return sin + DeltaRadius(sin, cos) * Math.Sin(Phi(sin, cos));
+            double deltaR = DeltaRadius(quad);
+            return new Quad(quad.Radius - deltaR, quad.Phi, AngleUnit.Radian);
         }
 
-        private double CosCor(double sin, double cos)
-        {
-            return cos + DeltaRadius(sin,cos) * Math.Cos(Phi(sin, cos));
-        }
-
-        private double DeltaRadius(double sin, double cos) => absoluteDeviation * Math.Sin(4 * Phi(sin, cos)+Math.PI/4);
+        private double DeltaRadius(Quad quad) => absoluteDeviation * Math.Sin(4 * quad.Phi + Math.PI / 4);
 
         private double absoluteDeviation;
 

@@ -35,8 +35,8 @@ namespace NLtest
 
             NLcorrectionDai dai = new NLcorrectionDai(hData, hSin, hCos);
             double[] dData = dai.CorrectedData;
-            double[] dSin = dai.CorrectedSinValues;
-            double[] dCos = dai.CorrectedCosValues;
+            Quad[] dQuad = dai.CorrectedQuadratureValues;
+
 
             int numberPoints = Math.Min(10_000, rawData.Length);
             using (StreamWriter writer = new StreamWriter(nmmFileName.BaseFileName+".csv", false))
@@ -48,9 +48,8 @@ namespace NLtest
                     double c0 = rawCos[i];
                     double s1 = hSin[i];
                     double c1 = hCos[i];
-                    double s2 = dSin[i];
-                    double c2 = dCos[i];
-                    string line = $"{s0}, {c0}, {PhiDeg(s0, c0)}, {Radius(s0, c0)},  {s1}, {c1}, {PhiDeg(s1, c1)}, {Radius(s1, c1)}, {s2}, {c2}, {PhiDeg(s2, c2)}, {Radius(s2, c2)}";
+                    Quad q2 = dQuad[i];
+                    string line = $"{s0}, {c0}, {PhiDeg(s0, c0)}, {Radius(s0, c0)},  {s1}, {c1}, {PhiDeg(s1, c1)}, {Radius(s1, c1)}, {q2.Sin}, {q2.Cos}, {q2.PhiDeg}, {q2.Radius}";
                     writer.WriteLine(line);
                 }
             }

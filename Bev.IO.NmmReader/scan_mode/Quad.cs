@@ -16,12 +16,18 @@ namespace Bev.IO.NmmReader.scan_mode
             Cos = cos;
         }
 
-        public Quad FromPolar(double radius, double angle)
+        public Quad(double radius, double angle, AngleUnit unit)
         {
-            double s = radius * Math.Cos(angle);
-            double c = radius * Math.Sin(angle);
-            return new Quad(s, c);
+            if (unit == AngleUnit.Degree)
+                angle = angle * Math.PI / 180;
+            Sin = radius * Math.Cos(angle);
+            Cos = radius * Math.Sin(angle);
         }
+    }
 
+    public enum AngleUnit
+    {
+        Radian,
+        Degree
     }
 }
