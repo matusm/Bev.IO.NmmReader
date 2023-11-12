@@ -31,7 +31,6 @@
 // Author: Michael Matus, 2020-2022
 //
 //*******************************************************************************************
-
 using System;
 using MathNet.Numerics.LinearAlgebra;
 using System.Linq;
@@ -43,8 +42,7 @@ namespace Bev.IO.NmmReader.scan_mode
         public CorrectionStatus Status { get; private set; } = CorrectionStatus.Unknown;
         public double CorrectionSpan { get; private set; } = 0.0;
         public double[] CorrectedData { get; private set; }
-        public double[] CorrectedSinValues { get; private set; }
-        public double[] CorrectedCosValues { get; private set; }
+        public Quad[] CorrectedQuadratureValues { get; private set; }
         // the 5 parameters characterizing an ellipse in the plane
         // the init values will result in a 0-correction
         public double OffsetX { get; private set; } = 0.0;
@@ -53,79 +51,66 @@ namespace Bev.IO.NmmReader.scan_mode
         public double Amplitude { get; private set; } = 1.0;
         public double AmplitudeRelation { get; private set; } = 1.0;
 
-        public NLcorrectionHeydemann(double[] rawData, double[] sinValues, double[] cosValues)
+        public NLcorrectionHeydemann(double[] rawData, Quad[] signal)
         {
-            PerformCorrection(rawData, sinValues, cosValues);
+            PerformCorrection(rawData, signal);
         }
 
-        private void PerformCorrection(double[] rawData, double[] sinValues, double[] cosValues)
+        private void PerformCorrection(double[] rawData, Quad[] signal)
         {
             Status = CorrectionStatus.Uncorrected;
             CorrectedData = new double[rawData.Length];
-            CorrectedSinValues = new double[sinValues.Length];
-            CorrectedCosValues = new double[cosValues.Length];
+            Quad[] CorrectedQuadratureValues = new Quad[rawData.Length];
             Array.Copy(rawData, CorrectedData, rawData.Length);
-            Array.Copy(sinValues, CorrectedSinValues, sinValues.Length);
-            Array.Copy(cosValues, CorrectedCosValues, cosValues.Length);
+            Array.Copy(signal, CorrectedQuadratureValues, signal.Length);
             if (rawData.Max() - rawData.Min() < NLconstants.lambda2)
             {
                 Status = CorrectionStatus.UncorrectedRangeTooSmall;
                 return;
             }
-            if (sinValues.Length != cosValues.Length)
-            {
-                Status = CorrectionStatus.UncorrectedInconsitentData;
-                return;
-            }
-            if (sinValues.Length != rawData.Length)
-            {
-                Status = CorrectionStatus.UncorrectedInconsitentData;
-                return;
-            }
-            if (sinValues.Length < 5) // need more than 5 data points to perform fit
+            if (CorrectedQuadratureValues.Length < 5) // need more than 5 data points to perform fit
             {
                 Status = CorrectionStatus.UncorrectedTooFewData;
                 return;
             }
-            FitEllipse(sinValues, cosValues);
+            FitEllipse(signal);
             // now the ellipse parameters are valid
             double deviation;
             double maxDeviation = double.MinValue;
             double minDeviation = double.MaxValue;
             for (int i = 0; i < rawData.Length; i++)
             {
-                deviation = HeydemannDeviationForPoint(sinValues[i], cosValues[i]);
-                CorrectedData[i] = rawData[i] - deviation; // ATENTION: the sign is valid only for rawData = -LZ+AZ !
+                deviation = HeydemannDeviationForPoint(signal[i].Sin, signal[i].Cos);
+                CorrectedData[i] = rawData[i] - deviation; // ATTENTION: the sign is valid only for rawData = -LZ+AZ !
                 if (deviation > maxDeviation) maxDeviation = deviation;
                 if (deviation < minDeviation) minDeviation = deviation;
                 // write corrected quadrature signals
-                CorrectedSinValues[i] = SinCor(sinValues[i], cosValues[i]);
-                CorrectedCosValues[i] = CosCor(sinValues[i], cosValues[i]);
+                CorrectedQuadratureValues[i] = new Quad(SinCor(signal[i].Sin, signal[i].Cos), CosCor(signal[i].Sin, signal[i].Cos));
             }
             CorrectionSpan = maxDeviation - minDeviation;
             Status = CorrectionStatus.Corrected;
         }
 
-        private void FitEllipse(double[] sin, double[] cos)
+        private void FitEllipse(Quad[] signal)
         {
             var M = Matrix<double>.Build;
             var V = Vector<double>.Build;
-            double[,] matMtemp = new double[5, sin.Length];
+            double[,] matMtemp = new double[5, signal.Length];
             // M=[ks.*ks,kc.*kc,ks.*kc,ks,kc]
-            for (int i = 0; i < sin.Length; i++)
+            for (int i = 0; i < signal.Length; i++)
             {
-                matMtemp[0, i] = sin[i] * sin[i];
-                matMtemp[1, i] = cos[i] * cos[i];
-                matMtemp[2, i] = sin[i] * cos[i];
-                matMtemp[3, i] = sin[i];
-                matMtemp[4, i] = cos[i];
+                matMtemp[0, i] = signal[i].Sin * signal[i].Sin;
+                matMtemp[1, i] = signal[i].Cos * signal[i].Cos;
+                matMtemp[2, i] = signal[i].Sin * signal[i].Cos;
+                matMtemp[3, i] = signal[i].Sin;
+                matMtemp[4, i] = signal[i].Cos;
             }
             var matM = M.DenseOfArray(matMtemp);
             // P=inv(M'*M)
             var matQ = matM * matM.Transpose();
             var matP = matQ.Inverse();
             // s=P*M'*X;
-            var matX = V.Dense(sin.Length, 1.0);
+            var matX = V.Dense(signal.Length, 1.0);
             // var matS = matP * matM * matX;
             var matT = matM * matX;
             var matS = matP * matT;
