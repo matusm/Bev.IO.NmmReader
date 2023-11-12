@@ -45,6 +45,8 @@ namespace Bev.IO.NmmReader.scan_mode
         public double[] CorrectedData { get; private set; }
         public double[] CorrectedSinValues { get; private set; }
         public double[] CorrectedCosValues { get; private set; }
+        public Quad[] QuadratureValues { get; }
+        public Quad[] CorrectedQuadratureValues { get; private set; }
         // the 5 parameters characterizing an ellipse in the plane
         // the init values will result in a 0-correction
         public double OffsetX { get; private set; } = 0.0;
@@ -64,6 +66,8 @@ namespace Bev.IO.NmmReader.scan_mode
             CorrectedData = new double[rawData.Length];
             CorrectedSinValues = new double[sinValues.Length];
             CorrectedCosValues = new double[cosValues.Length];
+            CorrectedQuadratureValues = new Quad[rawData.Length];
+
             Array.Copy(rawData, CorrectedData, rawData.Length);
             Array.Copy(sinValues, CorrectedSinValues, sinValues.Length);
             Array.Copy(cosValues, CorrectedCosValues, cosValues.Length);
