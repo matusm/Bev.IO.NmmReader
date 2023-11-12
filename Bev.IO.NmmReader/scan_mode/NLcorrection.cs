@@ -16,9 +16,9 @@ namespace Bev.IO.NmmReader.scan_mode
             Status = CheckInput(rawData, sinValues, cosValues);
             if (Status == CorrectionStatus.Uncorrected)
             {
-                Quad[] quads = CombineSignals(sinValues, cosValues);
-                NLcorrectionHeydemann heydemann = new NLcorrectionHeydemann(rawData, sinValues, cosValues);
-                NLcorrectionDai gaoliang = new NLcorrectionDai(heydemann.CorrectedData, heydemann.CorrectedSinValues, heydemann.CorrectedCosValues, empiricalCorrection);
+                Quad[] signal = CombineSignals(sinValues, cosValues);
+                NLcorrectionHeydemann heydemann = new NLcorrectionHeydemann(rawData, signal);
+                NLcorrectionDai gaoliang = new NLcorrectionDai(heydemann.CorrectedData, heydemann.CorrectedQuadratureValues, empiricalCorrection);
                 CorrectedData = gaoliang.CorrectedData;
                 CorrectionSpan2thOrder = heydemann.CorrectionSpan;
                 CorrectionSpan4thOrder = gaoliang.CorrectionSpan;
@@ -36,16 +36,16 @@ namespace Bev.IO.NmmReader.scan_mode
             Status = CheckInput(rawData, sinValues, cosValues);
             if (Status == CorrectionStatus.Uncorrected)
             {
-                Quad[] quads = CombineSignals(sinValues, cosValues);
-                NLcorrectionHeydemann heydemann = new NLcorrectionHeydemann(rawData, sinValues, cosValues);
+                Quad[] signal = CombineSignals(sinValues, cosValues);
+                NLcorrectionHeydemann heydemann = new NLcorrectionHeydemann(rawData, signal);
                 NLcorrectionDai gaoliang;
                 if (heydemann.Status == CorrectionStatus.Corrected)
                 {
-                    gaoliang = new NLcorrectionDai(heydemann.CorrectedData, heydemann.CorrectedSinValues, heydemann.CorrectedCosValues);
+                    gaoliang = new NLcorrectionDai(heydemann.CorrectedData, heydemann.CorrectedQuadratureValues);
                 }
                 else
                 {
-                    gaoliang = new NLcorrectionDai(heydemann.CorrectedData, heydemann.CorrectedSinValues, heydemann.CorrectedCosValues, NLconstants.defaultDaiCorrection);
+                    gaoliang = new NLcorrectionDai(heydemann.CorrectedData, heydemann.CorrectedQuadratureValues, NLconstants.defaultDaiCorrection);
                 }
                 CorrectedData = gaoliang.CorrectedData;
                 CorrectionSpan2thOrder = heydemann.CorrectionSpan;

@@ -47,39 +47,18 @@ namespace Bev.IO.NmmReader.scan_mode
         public Quad[] QuadratureValues { get; }
         public Quad[] CorrectedQuadratureValues { get; private set; }
 
-        public NLcorrectionDai(double[] rawData, double[] sinValues, double[] cosValues)
+        public NLcorrectionDai(double[] rawData, Quad[] signal)
         {
-            Status = CheckInput(rawData, sinValues, cosValues);
-            QuadratureValues = CombineSignals(sinValues, cosValues);
+            QuadratureValues = signal;
             CorrectionAmplitude = EstimateCorrectionAmplitude();
             PerformCorrection(rawData);
         }
 
-        public NLcorrectionDai(double[] rawData, double[] sinValues, double[] cosValues, double empiricalCorrection)
+        public NLcorrectionDai(double[] rawData, Quad[] signal, double empiricalCorrection)
         {
-            Status = CheckInput(rawData, sinValues, cosValues);
-            QuadratureValues = CombineSignals(sinValues, cosValues);
+            QuadratureValues = signal;
             CorrectionAmplitude = empiricalCorrection;
             PerformCorrection(rawData);
-        }
-
-        private CorrectionStatus CheckInput(double[] rawData, double[] sinValues, double[] cosValues)
-        {
-            if (sinValues.Length != cosValues.Length)
-                return CorrectionStatus.UncorrectedInconsitentData;
-            if (sinValues.Length != rawData.Length)
-                return CorrectionStatus.UncorrectedInconsitentData;
-            return CorrectionStatus.Uncorrected;
-        }
-
-        private Quad[] CombineSignals(double[] sinValues, double[] cosValues)
-        {
-            Quad[] quad = new Quad[sinValues.Length];
-            for (int i = 0; i < quad.Length; i++)
-            {
-                quad[i] = new Quad(sinValues[i], cosValues[i]);
-            }
-            return quad;
         }
 
         private void PerformCorrection(double[] rawData)
