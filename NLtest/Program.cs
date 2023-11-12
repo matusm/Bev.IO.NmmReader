@@ -23,20 +23,17 @@ namespace NLtest
             double[] rawData = nmmScanData.ExtractProfile("-LZ+AZ", 0, TopographyProcessType.ForwardOnly);
             double[] rawSin = nmmScanData.ExtractProfile("F4", 0, TopographyProcessType.ForwardOnly);
             double[] rawCos = nmmScanData.ExtractProfile("F5", 0, TopographyProcessType.ForwardOnly);
+            Quad[] rawSignal = CombineSignals(rawSin, rawCos);
 
             Console.WriteLine($"Number of data point {rawData.Length}");
-
             Console.WriteLine($"Correcting data");
 
-            NLcorrectionHeydemann heydemann = new NLcorrectionHeydemann(rawData, rawSin, rawCos);
+            NLcorrectionHeydemann heydemann = new NLcorrectionHeydemann(rawData, rawSignal);
             double[] hData = heydemann.CorrectedData;
-            double[] hSin = heydemann.CorrectedSinValues;
-            double[] hCos = heydemann.CorrectedCosValues;
+            Quad[] hSignal = heydemann.CorrectedQuadratureValues;
 
-            NLcorrectionDai dai = new NLcorrectionDai(hData, hSin, hCos);
-            double[] dData = dai.CorrectedData;
-            Quad[] dQuad = dai.CorrectedQuadratureValues;
-
+            NLcorrectionDai dai = new NLcorrectionDai(hData, hSignal);
+            Quad[] dSignal = dai.CorrectedQuadratureValues;
 
             int numberPoints = Math.Min(10_000, rawData.Length);
             using (StreamWriter writer = new StreamWriter(nmmFileName.BaseFileName+".csv", false))
@@ -44,12 +41,10 @@ namespace NLtest
                 Console.WriteLine($"Writing {nmmFileName.BaseFileName + ".csv"}");
                 for (int i = 0; i < numberPoints; i++)
                 {
-                    double s0 = rawSin[i];
-                    double c0 = rawCos[i];
-                    double s1 = hSin[i];
-                    double c1 = hCos[i];
-                    Quad q2 = dQuad[i];
-                    string line = $"{s0}, {c0}, {PhiDeg(s0, c0)}, {Radius(s0, c0)},  {s1}, {c1}, {PhiDeg(s1, c1)}, {Radius(s1, c1)}, {q2.Sin}, {q2.Cos}, {q2.PhiDeg}, {q2.Radius}";
+                    Quad q0 = rawSignal[i];
+                    Quad q1 = hSignal[i];
+                    Quad q2 = dSignal[i];
+                    string line = $"{q0.Sin}, {q0.Cos}, {q0.PhiDeg}, {q0.Radius}, {q1.Sin}, {q1.Cos}, {q1.PhiDeg}, {q1.Radius}, {q2.Sin}, {q2.Cos}, {q2.PhiDeg}, {q2.Radius}";
                     writer.WriteLine(line);
                 }
             }
@@ -58,10 +53,14 @@ namespace NLtest
         }
 
 
-        static double Radius(double x, double y) => Math.Sqrt(x * x + y * y);
-
-        static double PhiDeg(double x, double y) => Phi(x, y) * 180 / Math.PI;
-
-        static double Phi(double x, double y) => Math.Atan2(y, x);
+        static Quad[] CombineSignals(double[] sinValues, double[] cosValues)
+        {
+            Quad[] quad = new Quad[sinValues.Length];
+            for (int i = 0; i < quad.Length; i++)
+            {
+                quad[i] = new Quad(sinValues[i], cosValues[i]);
+            }
+            return quad;
+        }
     }
 }
