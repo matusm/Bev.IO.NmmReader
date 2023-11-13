@@ -32,6 +32,9 @@ namespace NLtest
             double[] hData = heydemann.CorrectedData;
             Quad[] hSignal = heydemann.CorrectedQuadratureValues;
 
+            Console.WriteLine($"Heydemann: {heydemann.Status} ({heydemann.CorrectionSpan*1e9:F1} nm)");
+            Console.WriteLine($"Signal: {hSignal.Length}");
+
             NLcorrectionDai dai = new NLcorrectionDai(hData, hSignal);
             Quad[] dSignal = dai.CorrectedQuadratureValues;
 

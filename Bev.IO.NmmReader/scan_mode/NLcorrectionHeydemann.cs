@@ -60,7 +60,7 @@ namespace Bev.IO.NmmReader.scan_mode
         {
             Status = CorrectionStatus.Uncorrected;
             CorrectedData = new double[rawData.Length];
-            Quad[] CorrectedQuadratureValues = new Quad[rawData.Length];
+            CorrectedQuadratureValues = new Quad[rawData.Length];
             Array.Copy(rawData, CorrectedData, rawData.Length);
             Array.Copy(signal, CorrectedQuadratureValues, signal.Length);
             if (rawData.Max() - rawData.Min() < NLconstants.lambda2)

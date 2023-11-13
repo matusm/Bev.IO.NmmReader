@@ -49,14 +49,16 @@ namespace Bev.IO.NmmReader.scan_mode
 
         public NLcorrectionDai(double[] rawData, Quad[] signal)
         {
-            QuadratureValues = signal;
+            QuadratureValues = new Quad[signal.Length];
+            Array.Copy(signal, QuadratureValues, signal.Length);
             CorrectionAmplitude = EstimateCorrectionAmplitude();
             PerformCorrection(rawData);
         }
 
         public NLcorrectionDai(double[] rawData, Quad[] signal, double empiricalCorrection)
         {
-            QuadratureValues = signal;
+            QuadratureValues = new Quad[signal.Length];
+            Array.Copy(signal, QuadratureValues, signal.Length);
             CorrectionAmplitude = empiricalCorrection;
             PerformCorrection(rawData);
         }
@@ -66,8 +68,6 @@ namespace Bev.IO.NmmReader.scan_mode
             CorrectedData = new double[rawData.Length];
             CorrectedQuadratureValues = new Quad[QuadratureValues.Length];
             Array.Copy(rawData, CorrectedData, rawData.Length);
-            if (Status != CorrectionStatus.Uncorrected) 
-                return;
             for (int i = 0; i < rawData.Length; i++)
             {
                 CorrectedData[i] += GetLengthCorrection(QuadratureValues[i]);
@@ -128,7 +128,7 @@ namespace Bev.IO.NmmReader.scan_mode
         private Quad CorrectQuadValue(Quad quad)
         {
             double deltaR = DeltaRadius(quad);
-            return new Quad(quad.Radius - deltaR, quad.Phi, AngleUnit.Radian);
+            return new Quad(quad.Radius + deltaR, quad.Phi, AngleUnit.Radian);
         }
 
         private double DeltaRadius(Quad quad) => absoluteDeviation * Math.Sin(4 * quad.Phi + Math.PI / 4);
