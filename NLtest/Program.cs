@@ -42,7 +42,7 @@ namespace NLtest
             using (StreamWriter writer = new StreamWriter(nmmFileName.BaseFileName+".csv", false))
             {
                 Console.WriteLine($"Writing {nmmFileName.BaseFileName + ".csv"}");
-                for (int i = 0; i < numberPoints; i++)
+                for (int i = 0; i < rawSignal.Length; i+=311)
                 {
                     Quad q0 = rawSignal[i];
                     Quad q1 = hSignal[i];

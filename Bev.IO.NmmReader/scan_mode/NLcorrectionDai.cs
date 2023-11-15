@@ -131,7 +131,7 @@ namespace Bev.IO.NmmReader.scan_mode
             return new Quad(quad.Radius + deltaR, quad.Phi, AngleUnit.Radian);
         }
 
-        private double DeltaRadius(Quad quad) => absoluteDeviation * Math.Sin(4 * quad.Phi + Math.PI / 4);
+        private double DeltaRadius(Quad quad) => 0.5 * absoluteDeviation * Math.Cos(4 * quad.Phi);
 
         private double absoluteDeviation;
 
