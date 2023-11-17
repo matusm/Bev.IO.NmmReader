@@ -1,9 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
+﻿// this is a dirty test program to evaluate the nonlinearity correction routines of Bev.IO.NmmReader
+
+using System;
 using System.IO;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using Bev.IO.NmmReader;
 using Bev.IO.NmmReader.scan_mode;
 
@@ -18,6 +16,8 @@ namespace NLtest
             Console.WriteLine($"Reading {filename}");
 
             NmmFileName nmmFileName = new NmmFileName(filename);
+            if (args.Length == 2)
+                nmmFileName.SetScanIndex(int.Parse(args[1]));
             NmmScanData nmmScanData = new NmmScanData(nmmFileName);
 
             double[] rawData = nmmScanData.ExtractProfile("-LZ+AZ", 0, TopographyProcessType.ForwardOnly);
@@ -32,17 +32,17 @@ namespace NLtest
             double[] hData = heydemann.CorrectedData;
             Quad[] hSignal = heydemann.CorrectedQuadratureValues;
 
-            Console.WriteLine($"Heydemann: {heydemann.Status} ({heydemann.CorrectionSpan*1e9:F1} nm)");
+            Console.WriteLine($"Heydemann: {heydemann.Status} ({heydemann.CorrectionSpan * 1e9:F1} nm)");
             Console.WriteLine($"Signal: {hSignal.Length}");
 
             NLcorrectionDai dai = new NLcorrectionDai(hData, hSignal);
             Quad[] dSignal = dai.CorrectedQuadratureValues;
 
             int numberPoints = Math.Min(10_000, rawData.Length);
-            using (StreamWriter writer = new StreamWriter(nmmFileName.BaseFileName+".csv", false))
+            using (StreamWriter writer = new StreamWriter(nmmFileName.BaseFileName + ".csv", false))
             {
                 Console.WriteLine($"Writing {nmmFileName.BaseFileName + ".csv"}");
-                for (int i = 0; i < rawSignal.Length; i+=311)
+                for (int i = 0; i < rawSignal.Length; i++)
                 {
                     Quad q0 = rawSignal[i];
                     Quad q1 = hSignal[i];
@@ -54,7 +54,6 @@ namespace NLtest
 
             Console.WriteLine("done.");
         }
-
 
         static Quad[] CombineSignals(double[] sinValues, double[] cosValues)
         {
