@@ -61,7 +61,7 @@ This is an enumeration for the predefined 3D objects (like spheres or planes) wh
 
 ## Correction of Interferometric Nonlinearity Errors
 
-![Deviation of the data from its fitted circle (uncorrected, Heydemann corrected, full corrected)](NLdata.PNG)
+![Deviation of the data from its fitted circle (uncorrected, Heydemann corrected, full corrected)](NLcorrection.PNG)
 
 ![Topography of uncorrected data](SiMetrics0343_03_4.png)
 
