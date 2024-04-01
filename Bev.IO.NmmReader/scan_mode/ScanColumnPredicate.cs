@@ -38,10 +38,7 @@ namespace Bev.IO.NmmReader.scan_mode
             return string.Equals(ColumnSymbol, columnSymbol.Trim(), StringComparison.OrdinalIgnoreCase);
         }
 
-        public override string ToString()
-        {
-            return $"[ScanColumnPredicate: ColumnSymbol={ColumnSymbol}, ColumnTitle={ColumnTitle}, UnitSymbol={UnitSymbol}]";
-        }
+        public override string ToString() => $"[ScanColumnPredicate: ColumnSymbol={ColumnSymbol}, ColumnTitle={ColumnTitle}, UnitSymbol={UnitSymbol}]";
 
     }
 }

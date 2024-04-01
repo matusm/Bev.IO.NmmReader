@@ -2,11 +2,7 @@
 {
     public class NmmInstrumentCharacteristcs
     {
-        public NmmInstrumentCharacteristcs()
-        {
-            SetDefaultCharacteristics();
-        }
-
+        public NmmInstrumentCharacteristcs() => SetDefaultCharacteristics();
 
         public string User { get; private set; }
         public string OrganisationLong { get; private set; }
@@ -35,6 +31,5 @@
             InstrumentVersion = "0016";
             EnvironmentMode = "air";
         }
-
     }
 }

@@ -85,7 +85,6 @@ namespace Bev.IO.NmmReader.scan_mode
             }
         }
 
-
         // This is used to populate the matrices line by line (usually during the file reading)
         public void InsertDataLineAt(double[] dataLine, int position, ScanDirection scanDirection)
         {
@@ -219,15 +218,9 @@ namespace Bev.IO.NmmReader.scan_mode
             }
         }
 
-        private double[] InvalidProfile()
-        {
-            return Enumerable.Repeat(double.NaN, NumberOfPointsPerProfile).ToArray();
-        }
+        private double[] InvalidProfile() => Enumerable.Repeat(double.NaN, NumberOfPointsPerProfile).ToArray();
 
-        private double[] InvalidProfileAll()
-        {
-            return Enumerable.Repeat(double.NaN, NumberTotalPoints).ToArray();
-        }
+        private double[] InvalidProfileAll() => Enumerable.Repeat(double.NaN, NumberTotalPoints).ToArray();
 
         // an equivalent method is defined also in NmmScanData class!
         // only needed once in the constructor

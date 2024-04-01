@@ -40,16 +40,10 @@ namespace Bev.IO.NmmReader.scan_mode
             if (ForwardFilePresent) hForwardFile.Close();
             if (BackwardFilePresent) hBackwardFile.Close();
         }
-        
-        public double[] NextForwardDataLine()
-        {
-            return ExtractNextDataLine(hForwardFile);
-        }
-        
-        public double[] NextBackwardDataLine()
-        {
-            return ExtractNextDataLine(hBackwardFile);
-        }
+
+        public double[] NextForwardDataLine() => ExtractNextDataLine(hForwardFile);
+
+        public double[] NextBackwardDataLine() => ExtractNextDataLine(hBackwardFile);
 
         private StreamReader OpenFileForLoading(string fileName)
         {

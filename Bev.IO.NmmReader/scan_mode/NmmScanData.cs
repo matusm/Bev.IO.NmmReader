@@ -70,20 +70,12 @@ namespace Bev.IO.NmmReader.scan_mode
 
         [Obsolete("HeydemannCorrectionApplied is deprecated, please use NonlinearityCorrectionApplied instead.", true)]
         public bool HeydemannCorrectionApplied => NonlinearityCorrectionApplied;
-        
-
 
         // this is the main method: returns the profile for a given symbol and index 
-        public double[] ExtractProfile(string columnSymbol, int profileIndex, TopographyProcessType type)
-        {
-            return ExtractProfile(GetColumnIndexFor(columnSymbol), profileIndex, type);
-        }
+        public double[] ExtractProfile(string columnSymbol, int profileIndex, TopographyProcessType type) => ExtractProfile(GetColumnIndexFor(columnSymbol), profileIndex, type);
 
         // overload in case the column index is known already 
-        public double[] ExtractProfile(int columnIndex, int profileIndex, TopographyProcessType type)
-        {
-            return topographyData.ExtractProfile(columnIndex, profileIndex, type);
-        }
+        public double[] ExtractProfile(int columnIndex, int profileIndex, TopographyProcessType type) => topographyData.ExtractProfile(columnIndex, profileIndex, type);
 
         public int GetColumnIndexFor(string columnSymbol)
         {
@@ -108,10 +100,7 @@ namespace Bev.IO.NmmReader.scan_mode
             return MetaData.ColumnPredicates[columnIndex];
         }
 
-        public ScanColumnPredicate GetPredicateFor(string columnSymbol)
-        {
-            return GetPredicateFor(GetColumnIndexFor(columnSymbol));
-        }
+        public ScanColumnPredicate GetPredicateFor(string columnSymbol) => GetPredicateFor(GetColumnIndexFor(columnSymbol));
 
         // currently this works only for the "-LZ+AZ" channel
         // LX, LY, LZ are not corrected!

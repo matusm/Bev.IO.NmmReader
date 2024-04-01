@@ -13,10 +13,7 @@ namespace Bev.IO.NmmReader.scan_mode
         /// </summary>
         /// <param name="dataMask">The data mask.</param>
         /// <returns>The expected number of columns in the data file.</returns>
-        public static int NumberOfColumnsFor(long dataMask)
-        {
-            return ColumnPredicatesFor(dataMask).Length;
-        }
+        public static int NumberOfColumnsFor(long dataMask) => ColumnPredicatesFor(dataMask).Length;
 
         /// <summary>
         /// Interpretes the provided data mask for short and long titles of columns in the data file.
@@ -109,6 +106,5 @@ namespace Bev.IO.NmmReader.scan_mode
             // return as array
             return columnsPredicates.ToArray();
         }
-
     }
 }
