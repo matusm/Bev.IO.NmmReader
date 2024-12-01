@@ -2,7 +2,7 @@
 
 namespace Bev.IO.NmmReader.scan_mode
 {
-    public class Quad
+    public class Quad : IComparable<Quad>
     {
         public double Sin { get; }
         public double Cos { get; }
@@ -23,6 +23,9 @@ namespace Bev.IO.NmmReader.scan_mode
             Sin = radius * Math.Cos(angle);
             Cos = radius * Math.Sin(angle);
         }
+
+        public int CompareTo(Quad other) => Phi.CompareTo(other.Phi);
+
     }
 
     public enum AngleUnit
