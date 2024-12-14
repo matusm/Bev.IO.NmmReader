@@ -43,6 +43,7 @@ namespace Bev.IO.NmmReader.scan_mode
         public CorrectionStatus Status { get; private set; } = CorrectionStatus.Unknown;
         public double CorrectionAmplitude { get; private set; }
         public double CorrectionSpan => CorrectionAmplitude * 2;
+        public double RelativeSquashing { get; private set; }
         public double[] CorrectedData { get; private set; }
         public Quad[] QuadratureValues { get; }
         public Quad[] CorrectedQuadratureValues { get; private set; }
@@ -93,8 +94,8 @@ namespace Bev.IO.NmmReader.scan_mode
                 if (IsNearToMedian(phi)) medianRadii.Update(r);
             }
             absoluteDeviation = medianRadii.AverageValue - axisRadii.AverageValue;
-            double relativeDeviation = absoluteDeviation / allRadii.AverageValue;
-            return relativeDeviation;
+            RelativeSquashing = absoluteDeviation / allRadii.AverageValue;
+            return RelativeSquashing;
         }
 
         private double EstimateCorrectionAmplitude() => NLconstants.empiricalNLfactor * EstimateCircleSquashing();
