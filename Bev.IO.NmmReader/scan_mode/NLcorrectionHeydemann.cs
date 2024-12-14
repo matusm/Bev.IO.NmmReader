@@ -53,7 +53,24 @@ namespace Bev.IO.NmmReader.scan_mode
 
         public NLcorrectionHeydemann(double[] rawData, Quad[] signal)
         {
-            PerformCorrection(rawData, signal);
+            if (rawData.Max() - rawData.Min() >= NLconstants.lambda2)
+            {
+                PerformCorrection(rawData, signal);
+            }
+            else
+            {
+                Status = CorrectionStatus.UncorrectedRangeTooSmall;
+            }
+        }
+
+        public NLcorrectionHeydemann(Quad[] signal)
+        {
+            double[] dummyData = new double[signal.Length];
+            for (int i = 0; i < dummyData.Length; i++)
+            {
+                dummyData[i] = 0;
+            }
+            PerformCorrection(dummyData, signal);
         }
 
         private void PerformCorrection(double[] rawData, Quad[] signal)
@@ -63,11 +80,6 @@ namespace Bev.IO.NmmReader.scan_mode
             CorrectedQuadratureValues = new Quad[rawData.Length];
             Array.Copy(rawData, CorrectedData, rawData.Length);
             Array.Copy(signal, CorrectedQuadratureValues, signal.Length);
-            if (rawData.Max() - rawData.Min() < NLconstants.lambda2)
-            {
-                Status = CorrectionStatus.UncorrectedRangeTooSmall;
-                return;
-            }
             if (CorrectedQuadratureValues.Length < 5) // need more than 5 data points to perform fit
             {
                 Status = CorrectionStatus.UncorrectedTooFewData;
