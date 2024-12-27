@@ -1,18 +1,14 @@
-﻿using System;
+﻿using Bev.IO.NmmReader._3d_mode;
+using Bev.IO.NmmReader.scan_mode;
+using System;
 using System.IO;
 using System.Globalization;
 using System.Collections.Generic;
-using Bev.IO.NmmReader._3d_mode;
 
 namespace Bev.IO.NmmReader
 {
     public class NmmDescriptionFileParser
     {
-        static readonly NumberFormatInfo numFormat = new NumberFormatInfo() { NumberDecimalSeparator = "." };
-        private const string ProbeType1 = "DME DualScope DS95";
-        private const string ProbeType2 = "SIOS LFS-02";
-        private const string ProbeType3 = "Xpress GannenXP";
-
         public NmmDescriptionFileParser(NmmFileName fileName)
         {
             LoadDescriptionFile(fileName.GetDscFileName());
@@ -39,12 +35,10 @@ namespace Bev.IO.NmmReader
         // common (scan and 3d) properties
         public MeasurementProcedure Procedure { get; private set; } = MeasurementProcedure.Unknown;
         public string ProbeDesignation { get; private set; }
-
         // 3d properties
         public string SpecimenIdentifier { get; private set; }
         public double ProbeDiameter { get; private set; }
         public int NumberOfDataPoints { get; private set; }
-
         // scan properties
         public List<string> ScanComments => scanComments;
         public string SpmTechnique { get; private set; } = "unknown SPM technique";
@@ -57,6 +51,28 @@ namespace Bev.IO.NmmReader
         public int NumberOfProfiles { get; private set; }
         public int NumberOfScans { get; private set; } = 0;
         public long DataMask { get; private set; }
+
+        public bool ColumnPresent(string columnSymbol)
+        {
+            if (GetColumnIndexFor(columnSymbol) == -1)
+                return false;
+            return true;
+        }
+
+        private int GetColumnIndexFor(string columnSymbol)
+        {
+            if (Procedure != MeasurementProcedure.Scan)
+                return -1;
+            if (metaData.DataMask == 0)
+            {
+                metaData.AddDataFrom(this);
+            }
+            for (int i = 0; i < metaData.NumberOfColumnsInFile; i++)
+            {
+                if (metaData.ColumnPredicates[i].IsOf(columnSymbol)) return i;
+            }
+            return -1;
+        }
 
         private void LoadDescriptionFile(string fileName)
         {
@@ -296,5 +312,11 @@ namespace Bev.IO.NmmReader
         private List<string> scanFieldParameters = new List<string>(); // text lines following "3. Scan field"
         private List<string> scanComments = new List<string>(); // text lines following "5. Additional comments"
 
+
+        private readonly ScanMetaData metaData = new ScanMetaData();
+        private static readonly NumberFormatInfo numFormat = new NumberFormatInfo() { NumberDecimalSeparator = "." };
+        private const string ProbeType1 = "DME DualScope DS95";
+        private const string ProbeType2 = "SIOS LFS-02";
+        private const string ProbeType3 = "Xpress GannenXP";
     }
 }
