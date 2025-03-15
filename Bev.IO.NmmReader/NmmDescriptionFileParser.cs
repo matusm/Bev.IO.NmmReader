@@ -200,13 +200,13 @@ namespace Bev.IO.NmmReader
             foreach (string s in scanProbeSystem)
             {
                 if (s.Contains("AFM"))
-                { 
+                {
                     SpmTechnique = "NC-AFM";
                     ProbeDesignation = ProbeType1;
                 }
-                    
+
                 if (s.Contains("Laser Focus"))
-                { 
+                {
                     SpmTechnique = "LFS";
                     ProbeDesignation = ProbeType2;
                 }
@@ -298,6 +298,15 @@ namespace Bev.IO.NmmReader
                 {
                     sTemp = s.Replace("Number of scans  : ", " ");
                     NumberOfScans = int.Parse(sTemp, numFormat);
+                }
+            }
+            // dsc files of older versions do not contain dy
+            // estimate from field dimension an profile number
+            if (ScanFieldDeltaY == 0)
+            {
+                if (NumberOfProfiles > 1)
+                {
+                    ScanFieldDeltaY = ScanFieldDimensionY / (NumberOfProfiles - 1);
                 }
             }
         }
