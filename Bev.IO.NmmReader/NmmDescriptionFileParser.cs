@@ -301,12 +301,12 @@ namespace Bev.IO.NmmReader
                 }
             }
             // dsc files of older versions do not contain dy
-            // estimate from field dimension an profile number
+            // estimate from field dimension and the profile number
             if (ScanFieldDeltaY == 0)
             {
                 if (NumberOfProfiles > 1)
                 {
-                    ScanFieldDeltaY = ScanFieldDimensionY / (NumberOfProfiles - 1);
+                    ScanFieldDeltaY = Math.Abs(ScanFieldDimensionY / (NumberOfProfiles - 1));
                 }
             }
         }
