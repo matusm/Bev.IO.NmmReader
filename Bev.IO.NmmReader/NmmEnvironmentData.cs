@@ -80,7 +80,8 @@ namespace Bev.IO.NmmReader
 
         private void ParseDataLine(string line)
         {
-            if (string.IsNullOrWhiteSpace(line)) return;
+            if (string.IsNullOrWhiteSpace(line)) 
+                return;
             char[] charSeparators = { ' ' };
             string[] tokens = line.Split(charSeparators, StringSplitOptions.RemoveEmptyEntries);
             try
@@ -88,9 +89,14 @@ namespace Bev.IO.NmmReader
                 switch (tokens.Length)
                 {
                     case 5: // 3d file without sample sensor
-                        xTemperatureValues.Add(double.Parse(tokens[0], numFormat));
-                        yTemperatureValues.Add(double.Parse(tokens[1], numFormat));
-                        zTemperatureValues.Add(double.Parse(tokens[2], numFormat));
+                        double xt = double.Parse(tokens[0], numFormat);
+                        double yt = double.Parse(tokens[1], numFormat);
+                        double zt = double.Parse(tokens[2], numFormat);
+                        double st = (xt + yt + zt) / 3;
+                        xTemperatureValues.Add(xt);
+                        yTemperatureValues.Add(yt);
+                        zTemperatureValues.Add(zt);
+                        sTemperatureValues.Add(st);
                         pressureValues.Add(double.Parse(tokens[3], numFormat));
                         humidityValues.Add(double.Parse(tokens[4], numFormat));
                         airTemperatureOrigin = AirTemperatureOrigin.MeasuredBySensor;
@@ -107,9 +113,14 @@ namespace Bev.IO.NmmReader
                         sampleTemperatureOrigin = SampleTemperatureOrigin.MeasuredBySensor;
                         break;
                     case 8: // scan file without sample sensor
-                        xTemperatureValues.Add(double.Parse(tokens[3], numFormat));
-                        yTemperatureValues.Add(double.Parse(tokens[4], numFormat));
-                        zTemperatureValues.Add(double.Parse(tokens[5], numFormat));
+                        xt = double.Parse(tokens[3], numFormat);
+                        yt = double.Parse(tokens[4], numFormat);
+                        zt = double.Parse(tokens[5], numFormat);
+                        st = (xt + yt + zt) / 3;
+                        xTemperatureValues.Add(xt);
+                        yTemperatureValues.Add(yt);
+                        zTemperatureValues.Add(zt);
+                        sTemperatureValues.Add(st);
                         pressureValues.Add(double.Parse(tokens[6], numFormat));
                         humidityValues.Add(double.Parse(tokens[7], numFormat));
                         airTemperatureOrigin = AirTemperatureOrigin.MeasuredBySensor;
